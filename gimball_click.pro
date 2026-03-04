@@ -1,4 +1,5 @@
-QT       += core gui network
+QT += core gui network serialport
+
 #QT += serialbus widgets
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -14,13 +15,13 @@ SOURCES += \
     clickablelabel.cpp \
     main.cpp \
     mainwindow.cpp \
-    siyisender.cpp \
+    mavlinkinterface.cpp \
     udpstreamer.cpp
 
 HEADERS += \
     clickablelabel.h \
     mainwindow.h \
-    siyisender.h \
+    mavlinkinterface.h \
     udpstreamer.h
 
 FORMS += \

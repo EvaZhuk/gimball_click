@@ -11,10 +11,9 @@
 #include <opencv2/tracking.hpp>
 
 #include "clickablelabel.h"
-#include "siyisender.h"
 
 #include "udpstreamer.h"
-
+#include "mavlinkinterface.h"
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -30,7 +29,6 @@ private:
     ClickableLabel *label;
     QTimer *timer;
     cv::VideoCapture cap;
-    SiyiSender siyi;
     UdpStreamer udpStreamer;
     QSize videoSize;
 

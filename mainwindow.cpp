@@ -33,27 +33,9 @@ MainWindow::MainWindow(QWidget *parent)
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
     videoSize = QSize(1920, 1080);
 
-    //udpStreamer.init("192.168.144.15", 5601, videoSize.width(), videoSize.height(), 30);
 
-    // Переконайтеся, що IP-адреса та порт коректні для вашої камери Siyi A8 Mini
-    siyi.setTarget(QHostAddress("192.168.144.25"), 37260);
 
-    // Ініціалізація змінних PID
-    // Ці значення є початковими і вимагають ретельного налагодження на реальній системі.
-    // Зазвичай Kp -> Kd -> Ki. Почніть з Kp, потім додайте Kd, потім Ki.
-    // Невеликі зміни можуть мати великий вплив.
-    Kp_yaw = 0.5f;
-    Ki_yaw = 0.005f;
-    Kd_yaw = 0.05f;
 
-    Kp_pitch = 0.5f;
-    Ki_pitch = 0.005f;
-    Kd_pitch = 0.05f;
-
-    integralYaw = 0.0f;
-    integralPitch = 0.0f;
-    previousErrorYaw = 0.0f;
-    previousErrorPitch = 0.0f;
 
     timer->start(30); // 30 мс інтервал оновлення (приблизно 33.3 кадри/сек)
 }
@@ -61,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow() {
     cap.release();
     // Відправити нульові швидкості, щоб гімбал зупинився при закритті програми
-    siyi.sendSpeeds(0.0f, 0.0f, 0.0f);
 }
 
 void MainWindow::updateFrame() {
@@ -100,46 +81,46 @@ void MainWindow::updateFrame() {
 
             float dt = timer->interval() / 1000.0f; // Час в секундах між оновленнями
 
-            // PID розрахунки для Yaw (панорама)
-            integralYaw += errorYaw * dt;
-            // Обмеження інтегральної складової для запобігання "wind-up"
-            integralYaw = std::clamp(integralYaw, -100.0f, 100.0f); // Приклад меж
+            // // PID розрахунки для Yaw (панорама)
+            // integralYaw += errorYaw * dt;
+            // // Обмеження інтегральної складової для запобігання "wind-up"
+            // integralYaw = std::clamp(integralYaw, -100.0f, 100.0f); // Приклад меж
 
-            float derivativeYaw = (errorYaw - previousErrorYaw) / dt;
-            previousErrorYaw = errorYaw;
+            // float derivativeYaw = (errorYaw - previousErrorYaw) / dt;
+            // previousErrorYaw = errorYaw;
 
-            float targetSpeedYaw = Kp_yaw * errorYaw + Ki_yaw * integralYaw + Kd_yaw * derivativeYaw;
+            // float targetSpeedYaw = Kp_yaw * errorYaw + Ki_yaw * integralYaw + Kd_yaw * derivativeYaw;
 
-            // PID розрахунки для Pitch (нахил)
-            integralPitch += errorPitch * dt;
-            // Обмеження інтегральної складової
-            integralPitch = std::clamp(integralPitch, -100.0f, 100.0f); // Приклад меж
+            // // PID розрахунки для Pitch (нахил)
+            // integralPitch += errorPitch * dt;
+            // // Обмеження інтегральної складової
+            // integralPitch = std::clamp(integralPitch, -100.0f, 100.0f); // Приклад меж
 
-            float derivativePitch = (errorPitch - previousErrorPitch) / dt;
-            previousErrorPitch = errorPitch;
+            // float derivativePitch = (errorPitch - previousErrorPitch) / dt;
+            // previousErrorPitch = errorPitch;
 
-            float targetSpeedPitch = Kp_pitch * errorPitch + Ki_pitch * integralPitch + Kd_pitch * derivativePitch;
+            // float targetSpeedPitch = Kp_pitch * errorPitch + Ki_pitch * integralPitch + Kd_pitch * derivativePitch;
 
-            // Обмеження розрахованих швидкостей PID-контролером до розумних меж (наприклад, 30 deg/sec)
-            // Ці значення будуть масштабуватися в siyisender.cpp до -100..100
-            targetSpeedYaw = std::clamp(targetSpeedYaw, -30.0f, 30.0f);
-            targetSpeedPitch = std::clamp(targetSpeedPitch, -30.0f, 30.0f);
+            // // Обмеження розрахованих швидкостей PID-контролером до розумних меж (наприклад, 30 deg/sec)
+            // // Ці значення будуть масштабуватися в siyisender.cpp до -100..100
+            // targetSpeedYaw = std::clamp(targetSpeedYaw, -30.0f, 30.0f);
+            // targetSpeedPitch = std::clamp(targetSpeedPitch, -30.0f, 30.0f);
 
-            // Відправка команд швидкості до гімбала Siyi
-            siyi.sendSpeeds(targetSpeedYaw, targetSpeedPitch, 0.0f); // Roll speed зазвичай 0 для трекінгу
+            // // Відправка команд швидкості до гімбала Siyi
+            // siyi.sendSpeeds(targetSpeedYaw, targetSpeedPitch, 0.0f); // Roll speed зазвичай 0 для трекінгу
 
-            qDebug() << "[PID Output] Yaw Speed:" << targetSpeedYaw << "Pitch Speed:" << targetSpeedPitch;
+            // qDebug() << "[PID Output] Yaw Speed:" << targetSpeedYaw << "Pitch Speed:" << targetSpeedPitch;
 
         } else {
             qDebug() << "TRACKER LOST - Resetting PID and stopping gimbal.";
             trackingActive = false;
             // Скидання інтегральної складової та попередніх помилок при втраті трекера
-            integralYaw = 0.0f;
+            /*integralYaw = 0.0f;
             integralPitch = 0.0f;
             previousErrorYaw = 0.0f;
             previousErrorPitch = 0.0f;
             // Відправити нульові швидкості, щоб камера зупинилася
-            siyi.sendSpeeds(0.0f, 0.0f, 0.0f);
+            siyi.sendSpeeds(0.0f, 0.0f, 0.0f);*/
         }
     }
 
@@ -212,7 +193,7 @@ void MainWindow::onLabelClicked(QPoint pos) {
 
     // Reset PID terms
     integralYaw = integralPitch = previousErrorYaw = previousErrorPitch = 0.0f;
-    siyi.sendSpeeds(0.0f, 0.0f, 0.0f);
+    //siyi.sendSpeeds(0.0f, 0.0f, 0.0f);
 }
 
 
