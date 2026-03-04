@@ -12,17 +12,28 @@ INCLUDEPATH += $$PWD/c_library_v2
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    clickablelabel.cpp \
+    can/transport/CannelloniFrame.cpp \
+    can/message/basecanmessage.cpp \
+    can/canbus.cpp \
+    can/message/canmessagegeneric.cpp \
+    can/parser/canparserworker.cpp \
+    gui/clickablelabel.cpp \
     main.cpp \
-    mainwindow.cpp \
-    mavlinkinterface.cpp \
-    udpstreamer.cpp
+    gui/mainwindow.cpp \
+    mavlink/mavlinkinterface.cpp \
+    stream/udpstreamer.cpp
 
 HEADERS += \
-    clickablelabel.h \
-    mainwindow.h \
-    mavlinkinterface.h \
-    udpstreamer.h
+    can/transport/CannelloniFrame.h \
+    can/util/CircularBuffer.h \
+    can/message/basecanmessage.h \
+    can/canbus.h \
+    can/message/canmessagegeneric.h \
+    can/parser/canparserworker.h \
+    gui/clickablelabel.h \
+    gui/mainwindow.h \
+    mavlink/mavlinkinterface.h \
+    stream/udpstreamer.h
 
 FORMS += \
     mainwindow.ui

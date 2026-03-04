@@ -6,10 +6,13 @@
 #include <QSize>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QMutex>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 
+#include "CircularBuffer.h"
+#include "canbus.h"
 #include "clickablelabel.h"
 
 #include "udpstreamer.h"
@@ -31,7 +34,7 @@ private:
     cv::VideoCapture cap;
     UdpStreamer udpStreamer;
     QSize videoSize;
-
+    CanBus *canBus;
     // Змінні для PID контролера
     float Kp_yaw, Ki_yaw, Kd_yaw;
     float Kp_pitch, Ki_pitch, Kd_pitch;
@@ -50,6 +53,10 @@ private:
     cv::Rect2d trackingROI;
     bool trackingActive = false;
     void drawFPS(cv::Mat frame);
+
+    int activeRX = 0;
+    CircularBuffer<std::vector<uint8_t>> localMessageQueue;
+    QMutex queueMutex;
 
 };
 

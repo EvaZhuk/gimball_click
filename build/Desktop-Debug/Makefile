@@ -52,19 +52,33 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = ../../clickablelabel.cpp \
+SOURCES       = ../../can/transport/CannelloniFrame.cpp \
+		../../can/message/basecanmessage.cpp \
+		../../can/canbus.cpp \
+		../../can/message/canmessagegeneric.cpp \
+		../../can/parser/canparserworker.cpp \
+		../../gui/clickablelabel.cpp \
 		../../main.cpp \
-		../../mainwindow.cpp \
-		../../mavlinkinterface.cpp \
-		../../udpstreamer.cpp moc_clickablelabel.cpp \
+		../../gui/mainwindow.cpp \
+		../../mavlink/mavlinkinterface.cpp \
+		../../stream/udpstreamer.cpp moc_canbus.cpp \
+		moc_canparserworker.cpp \
+		moc_clickablelabel.cpp \
 		moc_mainwindow.cpp \
 		moc_mavlinkinterface.cpp \
 		moc_udpstreamer.cpp
-OBJECTS       = clickablelabel.o \
+OBJECTS       = CannelloniFrame.o \
+		basecanmessage.o \
+		canbus.o \
+		canmessagegeneric.o \
+		canparserworker.o \
+		clickablelabel.o \
 		main.o \
 		mainwindow.o \
 		mavlinkinterface.o \
 		udpstreamer.o \
+		moc_canbus.o \
+		moc_canparserworker.o \
 		moc_clickablelabel.o \
 		moc_mainwindow.o \
 		moc_mavlinkinterface.o \
@@ -153,14 +167,25 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		../../../../gimball_click.pro ../../clickablelabel.h \
-		../../mainwindow.h \
-		../../mavlinkinterface.h \
-		../../udpstreamer.h ../../clickablelabel.cpp \
+		../../../../gimball_click.pro ../../can/transport/CannelloniFrame.h \
+		can/util/CircularBuffer.h \
+		../../can/message/basecanmessage.h \
+		../../can/canbus.h \
+		../../can/message/canmessagegeneric.h \
+		../../can/parser/canparserworker.h \
+		../../gui/clickablelabel.h \
+		../../gui/mainwindow.h \
+		../../mavlink/mavlinkinterface.h \
+		../../stream/udpstreamer.h ../../can/transport/CannelloniFrame.cpp \
+		../../can/message/basecanmessage.cpp \
+		../../can/canbus.cpp \
+		../../can/message/canmessagegeneric.cpp \
+		../../can/parser/canparserworker.cpp \
+		../../gui/clickablelabel.cpp \
 		../../main.cpp \
-		../../mainwindow.cpp \
-		../../mavlinkinterface.cpp \
-		../../udpstreamer.cpp
+		../../gui/mainwindow.cpp \
+		../../mavlink/mavlinkinterface.cpp \
+		../../stream/udpstreamer.cpp
 QMAKE_TARGET  = gimball_click
 DESTDIR       = 
 TARGET        = gimball_click
@@ -358,8 +383,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../../clickablelabel.h ../../mainwindow.h ../../mavlinkinterface.h ../../udpstreamer.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../clickablelabel.cpp ../../main.cpp ../../mainwindow.cpp ../../mavlinkinterface.cpp ../../udpstreamer.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.h can/util/CircularBuffer.h ../../can/message/basecanmessage.h ../../can/canbus.h ../../can/message/canmessagegeneric.h ../../can/parser/canparserworker.h ../../gui/clickablelabel.h ../../gui/mainwindow.h ../../mavlink/mavlinkinterface.h ../../stream/udpstreamer.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.cpp ../../can/message/basecanmessage.cpp ../../can/canbus.cpp ../../can/message/canmessagegeneric.cpp ../../can/parser/canparserworker.cpp ../../gui/clickablelabel.cpp ../../main.cpp ../../gui/mainwindow.cpp ../../mavlink/mavlinkinterface.cpp ../../stream/udpstreamer.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../../mainwindow.ui $(DISTDIR)/
 
 
@@ -392,18 +417,34 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	clang++ -pipe -g -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp
+compiler_moc_header_make_all: moc_canbus.cpp moc_canparserworker.cpp moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp
-moc_clickablelabel.cpp: ../../clickablelabel.h \
+	-$(DEL_FILE) moc_canbus.cpp moc_canparserworker.cpp moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp
+moc_canbus.cpp: ../../can/canbus.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../clickablelabel.h -o moc_clickablelabel.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../can/canbus.h -o moc_canbus.cpp
 
-moc_mainwindow.cpp: ../../mainwindow.h \
-		../../clickablelabel.h \
-		../../udpstreamer.h \
-		../../mavlinkinterface.h \
+moc_canparserworker.cpp: ../../can/parser/canparserworker.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../can/parser/canparserworker.h -o moc_canparserworker.cpp
+
+moc_clickablelabel.cpp: ../../gui/clickablelabel.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../gui/clickablelabel.h -o moc_clickablelabel.cpp
+
+moc_mainwindow.cpp: ../../gui/mainwindow.h \
+		../../can/utils/CircularBuffer.h \
+		../../can/canbus.h \
+		../../gui/clickablelabel.h \
+		../../stream/udpstreamer.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../gui/mainwindow.h -o moc_mainwindow.cpp
+
+moc_mavlinkinterface.cpp: ../../mavlink/mavlinkinterface.h \
 		/home/lps/c_library_v2/common/mavlink.h \
 		../../../c_library_v2/common/version.h \
 		../../../c_library_v2/common/common.h \
@@ -650,261 +691,12 @@ moc_mainwindow.cpp: ../../mainwindow.h \
 		../../../c_library_v2/mavlink_get_info.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../mavlink/mavlinkinterface.h -o moc_mavlinkinterface.cpp
 
-moc_mavlinkinterface.cpp: ../../mavlinkinterface.h \
-		/home/lps/c_library_v2/common/mavlink.h \
-		../../../c_library_v2/common/version.h \
-		../../../c_library_v2/common/common.h \
-		../../../c_library_v2/protocol.h \
-		../../../c_library_v2/mavlink_types.h \
-		../../../c_library_v2/mavlink_helpers.h \
-		../../../c_library_v2/checksum.h \
-		../../../c_library_v2/mavlink_conversions.h \
-		../../../c_library_v2/mavlink_sha256.h \
-		../../../c_library_v2/common/mavlink_msg_sys_status.h \
-		../../../c_library_v2/common/mavlink_msg_system_time.h \
-		../../../c_library_v2/common/mavlink_msg_ping.h \
-		../../../c_library_v2/common/mavlink_msg_change_operator_control.h \
-		../../../c_library_v2/common/mavlink_msg_change_operator_control_ack.h \
-		../../../c_library_v2/common/mavlink_msg_auth_key.h \
-		../../../c_library_v2/common/mavlink_msg_link_node_status.h \
-		../../../c_library_v2/common/mavlink_msg_set_mode.h \
-		../../../c_library_v2/common/mavlink_msg_param_request_read.h \
-		../../../c_library_v2/common/mavlink_msg_param_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_param_value.h \
-		../../../c_library_v2/common/mavlink_msg_param_set.h \
-		../../../c_library_v2/common/mavlink_msg_gps_raw_int.h \
-		../../../c_library_v2/common/mavlink_msg_gps_status.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_imu.h \
-		../../../c_library_v2/common/mavlink_msg_raw_imu.h \
-		../../../c_library_v2/common/mavlink_msg_raw_pressure.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_pressure.h \
-		../../../c_library_v2/common/mavlink_msg_attitude.h \
-		../../../c_library_v2/common/mavlink_msg_attitude_quaternion.h \
-		../../../c_library_v2/common/mavlink_msg_local_position_ned.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels_scaled.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels_raw.h \
-		../../../c_library_v2/common/mavlink_msg_servo_output_raw.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request_partial_list.h \
-		../../../c_library_v2/common/mavlink_msg_mission_write_partial_list.h \
-		../../../c_library_v2/common/mavlink_msg_mission_item.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request.h \
-		../../../c_library_v2/common/mavlink_msg_mission_set_current.h \
-		../../../c_library_v2/common/mavlink_msg_mission_current.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_mission_count.h \
-		../../../c_library_v2/common/mavlink_msg_mission_clear_all.h \
-		../../../c_library_v2/common/mavlink_msg_mission_item_reached.h \
-		../../../c_library_v2/common/mavlink_msg_mission_ack.h \
-		../../../c_library_v2/common/mavlink_msg_set_gps_global_origin.h \
-		../../../c_library_v2/common/mavlink_msg_gps_global_origin.h \
-		../../../c_library_v2/common/mavlink_msg_param_map_rc.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request_int.h \
-		../../../c_library_v2/common/mavlink_msg_safety_set_allowed_area.h \
-		../../../c_library_v2/common/mavlink_msg_safety_allowed_area.h \
-		../../../c_library_v2/common/mavlink_msg_attitude_quaternion_cov.h \
-		../../../c_library_v2/common/mavlink_msg_nav_controller_output.h \
-		../../../c_library_v2/common/mavlink_msg_global_position_int_cov.h \
-		../../../c_library_v2/common/mavlink_msg_local_position_ned_cov.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels.h \
-		../../../c_library_v2/common/mavlink_msg_request_data_stream.h \
-		../../../c_library_v2/common/mavlink_msg_data_stream.h \
-		../../../c_library_v2/common/mavlink_msg_manual_control.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels_override.h \
-		../../../c_library_v2/common/mavlink_msg_mission_item_int.h \
-		../../../c_library_v2/common/mavlink_msg_vfr_hud.h \
-		../../../c_library_v2/common/mavlink_msg_command_int.h \
-		../../../c_library_v2/common/mavlink_msg_command_long.h \
-		../../../c_library_v2/common/mavlink_msg_command_ack.h \
-		../../../c_library_v2/common/mavlink_msg_command_cancel.h \
-		../../../c_library_v2/common/mavlink_msg_manual_setpoint.h \
-		../../../c_library_v2/common/mavlink_msg_set_attitude_target.h \
-		../../../c_library_v2/common/mavlink_msg_attitude_target.h \
-		../../../c_library_v2/common/mavlink_msg_set_position_target_local_ned.h \
-		../../../c_library_v2/common/mavlink_msg_position_target_local_ned.h \
-		../../../c_library_v2/common/mavlink_msg_set_position_target_global_int.h \
-		../../../c_library_v2/common/mavlink_msg_position_target_global_int.h \
-		../../../c_library_v2/common/mavlink_msg_local_position_ned_system_global_offset.h \
-		../../../c_library_v2/common/mavlink_msg_hil_state.h \
-		../../../c_library_v2/common/mavlink_msg_hil_controls.h \
-		../../../c_library_v2/common/mavlink_msg_hil_rc_inputs_raw.h \
-		../../../c_library_v2/common/mavlink_msg_hil_actuator_controls.h \
-		../../../c_library_v2/common/mavlink_msg_optical_flow.h \
-		../../../c_library_v2/common/mavlink_msg_global_vision_position_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_vision_position_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_vision_speed_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_vicon_position_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_highres_imu.h \
-		../../../c_library_v2/common/mavlink_msg_optical_flow_rad.h \
-		../../../c_library_v2/common/mavlink_msg_hil_sensor.h \
-		../../../c_library_v2/common/mavlink_msg_sim_state.h \
-		../../../c_library_v2/common/mavlink_msg_radio_status.h \
-		../../../c_library_v2/common/mavlink_msg_file_transfer_protocol.h \
-		../../../c_library_v2/common/mavlink_msg_timesync.h \
-		../../../c_library_v2/common/mavlink_msg_camera_trigger.h \
-		../../../c_library_v2/common/mavlink_msg_hil_gps.h \
-		../../../c_library_v2/common/mavlink_msg_hil_optical_flow.h \
-		../../../c_library_v2/common/mavlink_msg_hil_state_quaternion.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_imu2.h \
-		../../../c_library_v2/common/mavlink_msg_log_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_log_entry.h \
-		../../../c_library_v2/common/mavlink_msg_log_request_data.h \
-		../../../c_library_v2/common/mavlink_msg_log_data.h \
-		../../../c_library_v2/common/mavlink_msg_log_erase.h \
-		../../../c_library_v2/common/mavlink_msg_log_request_end.h \
-		../../../c_library_v2/common/mavlink_msg_gps_inject_data.h \
-		../../../c_library_v2/common/mavlink_msg_gps2_raw.h \
-		../../../c_library_v2/common/mavlink_msg_power_status.h \
-		../../../c_library_v2/common/mavlink_msg_serial_control.h \
-		../../../c_library_v2/common/mavlink_msg_gps_rtk.h \
-		../../../c_library_v2/common/mavlink_msg_gps2_rtk.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_imu3.h \
-		../../../c_library_v2/common/mavlink_msg_data_transmission_handshake.h \
-		../../../c_library_v2/common/mavlink_msg_encapsulated_data.h \
-		../../../c_library_v2/common/mavlink_msg_distance_sensor.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_request.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_data.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_check.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_report.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_pressure2.h \
-		../../../c_library_v2/common/mavlink_msg_att_pos_mocap.h \
-		../../../c_library_v2/common/mavlink_msg_set_actuator_control_target.h \
-		../../../c_library_v2/common/mavlink_msg_actuator_control_target.h \
-		../../../c_library_v2/common/mavlink_msg_altitude.h \
-		../../../c_library_v2/common/mavlink_msg_resource_request.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_pressure3.h \
-		../../../c_library_v2/common/mavlink_msg_follow_target.h \
-		../../../c_library_v2/common/mavlink_msg_control_system_state.h \
-		../../../c_library_v2/common/mavlink_msg_battery_status.h \
-		../../../c_library_v2/common/mavlink_msg_landing_target.h \
-		../../../c_library_v2/common/mavlink_msg_fence_status.h \
-		../../../c_library_v2/common/mavlink_msg_mag_cal_report.h \
-		../../../c_library_v2/common/mavlink_msg_efi_status.h \
-		../../../c_library_v2/common/mavlink_msg_estimator_status.h \
-		../../../c_library_v2/common/mavlink_msg_wind_cov.h \
-		../../../c_library_v2/common/mavlink_msg_gps_input.h \
-		../../../c_library_v2/common/mavlink_msg_gps_rtcm_data.h \
-		../../../c_library_v2/common/mavlink_msg_high_latency.h \
-		../../../c_library_v2/common/mavlink_msg_high_latency2.h \
-		../../../c_library_v2/common/mavlink_msg_vibration.h \
-		../../../c_library_v2/common/mavlink_msg_home_position.h \
-		../../../c_library_v2/common/mavlink_msg_set_home_position.h \
-		../../../c_library_v2/common/mavlink_msg_message_interval.h \
-		../../../c_library_v2/common/mavlink_msg_extended_sys_state.h \
-		../../../c_library_v2/common/mavlink_msg_adsb_vehicle.h \
-		../../../c_library_v2/common/mavlink_msg_collision.h \
-		../../../c_library_v2/common/mavlink_msg_v2_extension.h \
-		../../../c_library_v2/common/mavlink_msg_memory_vect.h \
-		../../../c_library_v2/common/mavlink_msg_debug_vect.h \
-		../../../c_library_v2/common/mavlink_msg_named_value_float.h \
-		../../../c_library_v2/common/mavlink_msg_named_value_int.h \
-		../../../c_library_v2/common/mavlink_msg_statustext.h \
-		../../../c_library_v2/common/mavlink_msg_debug.h \
-		../../../c_library_v2/common/mavlink_msg_setup_signing.h \
-		../../../c_library_v2/common/mavlink_msg_button_change.h \
-		../../../c_library_v2/common/mavlink_msg_play_tune.h \
-		../../../c_library_v2/common/mavlink_msg_camera_information.h \
-		../../../c_library_v2/common/mavlink_msg_camera_settings.h \
-		../../../c_library_v2/common/mavlink_msg_storage_information.h \
-		../../../c_library_v2/common/mavlink_msg_camera_capture_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_image_captured.h \
-		../../../c_library_v2/common/mavlink_msg_flight_information.h \
-		../../../c_library_v2/common/mavlink_msg_mount_orientation.h \
-		../../../c_library_v2/common/mavlink_msg_logging_data.h \
-		../../../c_library_v2/common/mavlink_msg_logging_data_acked.h \
-		../../../c_library_v2/common/mavlink_msg_logging_ack.h \
-		../../../c_library_v2/common/mavlink_msg_video_stream_information.h \
-		../../../c_library_v2/common/mavlink_msg_video_stream_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_fov_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_tracking_image_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_tracking_geo_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_thermal_range.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_information.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_status.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_set_attitude.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_device_information.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_device_set_attitude.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_device_attitude_status.h \
-		../../../c_library_v2/common/mavlink_msg_autopilot_state_for_gimbal_device.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_set_pitchyaw.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_set_manual_control.h \
-		../../../c_library_v2/common/mavlink_msg_esc_info.h \
-		../../../c_library_v2/common/mavlink_msg_esc_status.h \
-		../../../c_library_v2/common/mavlink_msg_airspeed.h \
-		../../../c_library_v2/common/mavlink_msg_wifi_config_ap.h \
-		../../../c_library_v2/common/mavlink_msg_protocol_version.h \
-		../../../c_library_v2/common/mavlink_msg_ais_vessel.h \
-		../../../c_library_v2/common/mavlink_msg_uavcan_node_status.h \
-		../../../c_library_v2/common/mavlink_msg_uavcan_node_info.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_request_read.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_value.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_set.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_ack.h \
-		../../../c_library_v2/common/mavlink_msg_obstacle_distance.h \
-		../../../c_library_v2/common/mavlink_msg_odometry.h \
-		../../../c_library_v2/common/mavlink_msg_trajectory_representation_waypoints.h \
-		../../../c_library_v2/common/mavlink_msg_trajectory_representation_bezier.h \
-		../../../c_library_v2/common/mavlink_msg_cellular_status.h \
-		../../../c_library_v2/common/mavlink_msg_isbd_link_status.h \
-		../../../c_library_v2/common/mavlink_msg_cellular_config.h \
-		../../../c_library_v2/common/mavlink_msg_raw_rpm.h \
-		../../../c_library_v2/common/mavlink_msg_utm_global_position.h \
-		../../../c_library_v2/common/mavlink_msg_param_error.h \
-		../../../c_library_v2/common/mavlink_msg_debug_float_array.h \
-		../../../c_library_v2/common/mavlink_msg_orbit_execution_status.h \
-		../../../c_library_v2/common/mavlink_msg_smart_battery_info.h \
-		../../../c_library_v2/common/mavlink_msg_figure_eight_execution_status.h \
-		../../../c_library_v2/common/mavlink_msg_fuel_status.h \
-		../../../c_library_v2/common/mavlink_msg_battery_info.h \
-		../../../c_library_v2/common/mavlink_msg_generator_status.h \
-		../../../c_library_v2/common/mavlink_msg_actuator_output_status.h \
-		../../../c_library_v2/common/mavlink_msg_time_estimate_to_target.h \
-		../../../c_library_v2/common/mavlink_msg_tunnel.h \
-		../../../c_library_v2/common/mavlink_msg_can_frame.h \
-		../../../c_library_v2/common/mavlink_msg_onboard_computer_status.h \
-		../../../c_library_v2/common/mavlink_msg_component_information.h \
-		../../../c_library_v2/common/mavlink_msg_component_information_basic.h \
-		../../../c_library_v2/common/mavlink_msg_component_metadata.h \
-		../../../c_library_v2/common/mavlink_msg_play_tune_v2.h \
-		../../../c_library_v2/common/mavlink_msg_supported_tunes.h \
-		../../../c_library_v2/common/mavlink_msg_event.h \
-		../../../c_library_v2/common/mavlink_msg_current_event_sequence.h \
-		../../../c_library_v2/common/mavlink_msg_request_event.h \
-		../../../c_library_v2/common/mavlink_msg_response_event_error.h \
-		../../../c_library_v2/common/mavlink_msg_available_modes.h \
-		../../../c_library_v2/common/mavlink_msg_current_mode.h \
-		../../../c_library_v2/common/mavlink_msg_available_modes_monitor.h \
-		../../../c_library_v2/common/mavlink_msg_illuminator_status.h \
-		../../../c_library_v2/common/mavlink_msg_canfd_frame.h \
-		../../../c_library_v2/common/mavlink_msg_can_filter_modify.h \
-		../../../c_library_v2/common/mavlink_msg_wheel_distance.h \
-		../../../c_library_v2/common/mavlink_msg_winch_status.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_basic_id.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_location.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_authentication.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_self_id.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_system.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_operator_id.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_message_pack.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_arm_status.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_system_update.h \
-		../../../c_library_v2/common/mavlink_msg_hygrometer_sensor.h \
-		../../../c_library_v2/standard/standard.h \
-		../../../c_library_v2/standard/mavlink_msg_global_position_int.h \
-		../../../c_library_v2/standard/mavlink_msg_autopilot_version.h \
-		../../../c_library_v2/minimal/minimal.h \
-		../../../c_library_v2/minimal/mavlink_msg_heartbeat.h \
-		../../../c_library_v2/mavlink_get_info.h \
+moc_udpstreamer.cpp: ../../stream/udpstreamer.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../mavlinkinterface.h -o moc_mavlinkinterface.cpp
-
-moc_udpstreamer.cpp: ../../udpstreamer.h \
-		moc_predefs.h \
-		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../udpstreamer.h -o moc_udpstreamer.cpp
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../stream/udpstreamer.h -o moc_udpstreamer.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -927,13 +719,31 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean compiler_ui
 
 ####### Compile
 
-clickablelabel.o: ../../clickablelabel.cpp ../../clickablelabel.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o clickablelabel.o ../../clickablelabel.cpp
+CannelloniFrame.o: ../../can/transport/CannelloniFrame.cpp ../../can/transport/CannelloniFrame.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o CannelloniFrame.o ../../can/transport/CannelloniFrame.cpp
 
-main.o: ../../main.cpp ../../mainwindow.h \
-		../../clickablelabel.h \
-		../../udpstreamer.h \
-		../../mavlinkinterface.h \
+basecanmessage.o: ../../can/message/basecanmessage.cpp ../../can/message/basecanmessage.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o basecanmessage.o ../../can/message/basecanmessage.cpp
+
+canbus.o: ../../can/canbus.cpp ../../can/canbus.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o canbus.o ../../can/canbus.cpp
+
+canmessagegeneric.o: ../../can/message/canmessagegeneric.cpp ../../can/message/canmessagegeneric.h \
+		../../can/message/basecanmessage.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o canmessagegeneric.o ../../can/message/canmessagegeneric.cpp
+
+canparserworker.o: ../../can/parser/canparserworker.cpp ../../can/parser/canparserworker.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o canparserworker.o ../../can/parser/canparserworker.cpp
+
+clickablelabel.o: ../../gui/clickablelabel.cpp ../../gui/clickablelabel.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o clickablelabel.o ../../gui/clickablelabel.cpp
+
+main.o: ../../main.cpp ../../gui/mainwindow.h \
+		../../can/utils/CircularBuffer.h \
+		../../can/canbus.h \
+		../../gui/clickablelabel.h \
+		../../stream/udpstreamer.h \
+		../../mavlink/mavlinkinterface.h \
 		/home/lps/c_library_v2/common/mavlink.h \
 		../../../c_library_v2/common/version.h \
 		../../../c_library_v2/common/common.h \
@@ -1180,10 +990,14 @@ main.o: ../../main.cpp ../../mainwindow.h \
 		../../../c_library_v2/mavlink_get_info.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
 
-mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
-		../../clickablelabel.h \
-		../../udpstreamer.h \
-		../../mavlinkinterface.h \
+mainwindow.o: ../../gui/mainwindow.cpp ../../gui/mainwindow.h \
+		../../can/utils/CircularBuffer.h \
+		../../can/canbus.h \
+		../../gui/clickablelabel.h \
+		../../stream/udpstreamer.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../gui/mainwindow.cpp
+
+mavlinkinterface.o: ../../mavlink/mavlinkinterface.cpp ../../mavlink/mavlinkinterface.h \
 		/home/lps/c_library_v2/common/mavlink.h \
 		../../../c_library_v2/common/version.h \
 		../../../c_library_v2/common/common.h \
@@ -1428,257 +1242,16 @@ mainwindow.o: ../../mainwindow.cpp ../../mainwindow.h \
 		../../../c_library_v2/minimal/minimal.h \
 		../../../c_library_v2/minimal/mavlink_msg_heartbeat.h \
 		../../../c_library_v2/mavlink_get_info.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../mainwindow.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mavlinkinterface.o ../../mavlink/mavlinkinterface.cpp
 
-mavlinkinterface.o: ../../mavlinkinterface.cpp ../../mavlinkinterface.h \
-		/home/lps/c_library_v2/common/mavlink.h \
-		../../../c_library_v2/common/version.h \
-		../../../c_library_v2/common/common.h \
-		../../../c_library_v2/protocol.h \
-		../../../c_library_v2/mavlink_types.h \
-		../../../c_library_v2/mavlink_helpers.h \
-		../../../c_library_v2/checksum.h \
-		../../../c_library_v2/mavlink_conversions.h \
-		../../../c_library_v2/mavlink_sha256.h \
-		../../../c_library_v2/common/mavlink_msg_sys_status.h \
-		../../../c_library_v2/common/mavlink_msg_system_time.h \
-		../../../c_library_v2/common/mavlink_msg_ping.h \
-		../../../c_library_v2/common/mavlink_msg_change_operator_control.h \
-		../../../c_library_v2/common/mavlink_msg_change_operator_control_ack.h \
-		../../../c_library_v2/common/mavlink_msg_auth_key.h \
-		../../../c_library_v2/common/mavlink_msg_link_node_status.h \
-		../../../c_library_v2/common/mavlink_msg_set_mode.h \
-		../../../c_library_v2/common/mavlink_msg_param_request_read.h \
-		../../../c_library_v2/common/mavlink_msg_param_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_param_value.h \
-		../../../c_library_v2/common/mavlink_msg_param_set.h \
-		../../../c_library_v2/common/mavlink_msg_gps_raw_int.h \
-		../../../c_library_v2/common/mavlink_msg_gps_status.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_imu.h \
-		../../../c_library_v2/common/mavlink_msg_raw_imu.h \
-		../../../c_library_v2/common/mavlink_msg_raw_pressure.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_pressure.h \
-		../../../c_library_v2/common/mavlink_msg_attitude.h \
-		../../../c_library_v2/common/mavlink_msg_attitude_quaternion.h \
-		../../../c_library_v2/common/mavlink_msg_local_position_ned.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels_scaled.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels_raw.h \
-		../../../c_library_v2/common/mavlink_msg_servo_output_raw.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request_partial_list.h \
-		../../../c_library_v2/common/mavlink_msg_mission_write_partial_list.h \
-		../../../c_library_v2/common/mavlink_msg_mission_item.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request.h \
-		../../../c_library_v2/common/mavlink_msg_mission_set_current.h \
-		../../../c_library_v2/common/mavlink_msg_mission_current.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_mission_count.h \
-		../../../c_library_v2/common/mavlink_msg_mission_clear_all.h \
-		../../../c_library_v2/common/mavlink_msg_mission_item_reached.h \
-		../../../c_library_v2/common/mavlink_msg_mission_ack.h \
-		../../../c_library_v2/common/mavlink_msg_set_gps_global_origin.h \
-		../../../c_library_v2/common/mavlink_msg_gps_global_origin.h \
-		../../../c_library_v2/common/mavlink_msg_param_map_rc.h \
-		../../../c_library_v2/common/mavlink_msg_mission_request_int.h \
-		../../../c_library_v2/common/mavlink_msg_safety_set_allowed_area.h \
-		../../../c_library_v2/common/mavlink_msg_safety_allowed_area.h \
-		../../../c_library_v2/common/mavlink_msg_attitude_quaternion_cov.h \
-		../../../c_library_v2/common/mavlink_msg_nav_controller_output.h \
-		../../../c_library_v2/common/mavlink_msg_global_position_int_cov.h \
-		../../../c_library_v2/common/mavlink_msg_local_position_ned_cov.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels.h \
-		../../../c_library_v2/common/mavlink_msg_request_data_stream.h \
-		../../../c_library_v2/common/mavlink_msg_data_stream.h \
-		../../../c_library_v2/common/mavlink_msg_manual_control.h \
-		../../../c_library_v2/common/mavlink_msg_rc_channels_override.h \
-		../../../c_library_v2/common/mavlink_msg_mission_item_int.h \
-		../../../c_library_v2/common/mavlink_msg_vfr_hud.h \
-		../../../c_library_v2/common/mavlink_msg_command_int.h \
-		../../../c_library_v2/common/mavlink_msg_command_long.h \
-		../../../c_library_v2/common/mavlink_msg_command_ack.h \
-		../../../c_library_v2/common/mavlink_msg_command_cancel.h \
-		../../../c_library_v2/common/mavlink_msg_manual_setpoint.h \
-		../../../c_library_v2/common/mavlink_msg_set_attitude_target.h \
-		../../../c_library_v2/common/mavlink_msg_attitude_target.h \
-		../../../c_library_v2/common/mavlink_msg_set_position_target_local_ned.h \
-		../../../c_library_v2/common/mavlink_msg_position_target_local_ned.h \
-		../../../c_library_v2/common/mavlink_msg_set_position_target_global_int.h \
-		../../../c_library_v2/common/mavlink_msg_position_target_global_int.h \
-		../../../c_library_v2/common/mavlink_msg_local_position_ned_system_global_offset.h \
-		../../../c_library_v2/common/mavlink_msg_hil_state.h \
-		../../../c_library_v2/common/mavlink_msg_hil_controls.h \
-		../../../c_library_v2/common/mavlink_msg_hil_rc_inputs_raw.h \
-		../../../c_library_v2/common/mavlink_msg_hil_actuator_controls.h \
-		../../../c_library_v2/common/mavlink_msg_optical_flow.h \
-		../../../c_library_v2/common/mavlink_msg_global_vision_position_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_vision_position_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_vision_speed_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_vicon_position_estimate.h \
-		../../../c_library_v2/common/mavlink_msg_highres_imu.h \
-		../../../c_library_v2/common/mavlink_msg_optical_flow_rad.h \
-		../../../c_library_v2/common/mavlink_msg_hil_sensor.h \
-		../../../c_library_v2/common/mavlink_msg_sim_state.h \
-		../../../c_library_v2/common/mavlink_msg_radio_status.h \
-		../../../c_library_v2/common/mavlink_msg_file_transfer_protocol.h \
-		../../../c_library_v2/common/mavlink_msg_timesync.h \
-		../../../c_library_v2/common/mavlink_msg_camera_trigger.h \
-		../../../c_library_v2/common/mavlink_msg_hil_gps.h \
-		../../../c_library_v2/common/mavlink_msg_hil_optical_flow.h \
-		../../../c_library_v2/common/mavlink_msg_hil_state_quaternion.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_imu2.h \
-		../../../c_library_v2/common/mavlink_msg_log_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_log_entry.h \
-		../../../c_library_v2/common/mavlink_msg_log_request_data.h \
-		../../../c_library_v2/common/mavlink_msg_log_data.h \
-		../../../c_library_v2/common/mavlink_msg_log_erase.h \
-		../../../c_library_v2/common/mavlink_msg_log_request_end.h \
-		../../../c_library_v2/common/mavlink_msg_gps_inject_data.h \
-		../../../c_library_v2/common/mavlink_msg_gps2_raw.h \
-		../../../c_library_v2/common/mavlink_msg_power_status.h \
-		../../../c_library_v2/common/mavlink_msg_serial_control.h \
-		../../../c_library_v2/common/mavlink_msg_gps_rtk.h \
-		../../../c_library_v2/common/mavlink_msg_gps2_rtk.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_imu3.h \
-		../../../c_library_v2/common/mavlink_msg_data_transmission_handshake.h \
-		../../../c_library_v2/common/mavlink_msg_encapsulated_data.h \
-		../../../c_library_v2/common/mavlink_msg_distance_sensor.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_request.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_data.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_check.h \
-		../../../c_library_v2/common/mavlink_msg_terrain_report.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_pressure2.h \
-		../../../c_library_v2/common/mavlink_msg_att_pos_mocap.h \
-		../../../c_library_v2/common/mavlink_msg_set_actuator_control_target.h \
-		../../../c_library_v2/common/mavlink_msg_actuator_control_target.h \
-		../../../c_library_v2/common/mavlink_msg_altitude.h \
-		../../../c_library_v2/common/mavlink_msg_resource_request.h \
-		../../../c_library_v2/common/mavlink_msg_scaled_pressure3.h \
-		../../../c_library_v2/common/mavlink_msg_follow_target.h \
-		../../../c_library_v2/common/mavlink_msg_control_system_state.h \
-		../../../c_library_v2/common/mavlink_msg_battery_status.h \
-		../../../c_library_v2/common/mavlink_msg_landing_target.h \
-		../../../c_library_v2/common/mavlink_msg_fence_status.h \
-		../../../c_library_v2/common/mavlink_msg_mag_cal_report.h \
-		../../../c_library_v2/common/mavlink_msg_efi_status.h \
-		../../../c_library_v2/common/mavlink_msg_estimator_status.h \
-		../../../c_library_v2/common/mavlink_msg_wind_cov.h \
-		../../../c_library_v2/common/mavlink_msg_gps_input.h \
-		../../../c_library_v2/common/mavlink_msg_gps_rtcm_data.h \
-		../../../c_library_v2/common/mavlink_msg_high_latency.h \
-		../../../c_library_v2/common/mavlink_msg_high_latency2.h \
-		../../../c_library_v2/common/mavlink_msg_vibration.h \
-		../../../c_library_v2/common/mavlink_msg_home_position.h \
-		../../../c_library_v2/common/mavlink_msg_set_home_position.h \
-		../../../c_library_v2/common/mavlink_msg_message_interval.h \
-		../../../c_library_v2/common/mavlink_msg_extended_sys_state.h \
-		../../../c_library_v2/common/mavlink_msg_adsb_vehicle.h \
-		../../../c_library_v2/common/mavlink_msg_collision.h \
-		../../../c_library_v2/common/mavlink_msg_v2_extension.h \
-		../../../c_library_v2/common/mavlink_msg_memory_vect.h \
-		../../../c_library_v2/common/mavlink_msg_debug_vect.h \
-		../../../c_library_v2/common/mavlink_msg_named_value_float.h \
-		../../../c_library_v2/common/mavlink_msg_named_value_int.h \
-		../../../c_library_v2/common/mavlink_msg_statustext.h \
-		../../../c_library_v2/common/mavlink_msg_debug.h \
-		../../../c_library_v2/common/mavlink_msg_setup_signing.h \
-		../../../c_library_v2/common/mavlink_msg_button_change.h \
-		../../../c_library_v2/common/mavlink_msg_play_tune.h \
-		../../../c_library_v2/common/mavlink_msg_camera_information.h \
-		../../../c_library_v2/common/mavlink_msg_camera_settings.h \
-		../../../c_library_v2/common/mavlink_msg_storage_information.h \
-		../../../c_library_v2/common/mavlink_msg_camera_capture_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_image_captured.h \
-		../../../c_library_v2/common/mavlink_msg_flight_information.h \
-		../../../c_library_v2/common/mavlink_msg_mount_orientation.h \
-		../../../c_library_v2/common/mavlink_msg_logging_data.h \
-		../../../c_library_v2/common/mavlink_msg_logging_data_acked.h \
-		../../../c_library_v2/common/mavlink_msg_logging_ack.h \
-		../../../c_library_v2/common/mavlink_msg_video_stream_information.h \
-		../../../c_library_v2/common/mavlink_msg_video_stream_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_fov_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_tracking_image_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_tracking_geo_status.h \
-		../../../c_library_v2/common/mavlink_msg_camera_thermal_range.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_information.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_status.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_set_attitude.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_device_information.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_device_set_attitude.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_device_attitude_status.h \
-		../../../c_library_v2/common/mavlink_msg_autopilot_state_for_gimbal_device.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_set_pitchyaw.h \
-		../../../c_library_v2/common/mavlink_msg_gimbal_manager_set_manual_control.h \
-		../../../c_library_v2/common/mavlink_msg_esc_info.h \
-		../../../c_library_v2/common/mavlink_msg_esc_status.h \
-		../../../c_library_v2/common/mavlink_msg_airspeed.h \
-		../../../c_library_v2/common/mavlink_msg_wifi_config_ap.h \
-		../../../c_library_v2/common/mavlink_msg_protocol_version.h \
-		../../../c_library_v2/common/mavlink_msg_ais_vessel.h \
-		../../../c_library_v2/common/mavlink_msg_uavcan_node_status.h \
-		../../../c_library_v2/common/mavlink_msg_uavcan_node_info.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_request_read.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_request_list.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_value.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_set.h \
-		../../../c_library_v2/common/mavlink_msg_param_ext_ack.h \
-		../../../c_library_v2/common/mavlink_msg_obstacle_distance.h \
-		../../../c_library_v2/common/mavlink_msg_odometry.h \
-		../../../c_library_v2/common/mavlink_msg_trajectory_representation_waypoints.h \
-		../../../c_library_v2/common/mavlink_msg_trajectory_representation_bezier.h \
-		../../../c_library_v2/common/mavlink_msg_cellular_status.h \
-		../../../c_library_v2/common/mavlink_msg_isbd_link_status.h \
-		../../../c_library_v2/common/mavlink_msg_cellular_config.h \
-		../../../c_library_v2/common/mavlink_msg_raw_rpm.h \
-		../../../c_library_v2/common/mavlink_msg_utm_global_position.h \
-		../../../c_library_v2/common/mavlink_msg_param_error.h \
-		../../../c_library_v2/common/mavlink_msg_debug_float_array.h \
-		../../../c_library_v2/common/mavlink_msg_orbit_execution_status.h \
-		../../../c_library_v2/common/mavlink_msg_smart_battery_info.h \
-		../../../c_library_v2/common/mavlink_msg_figure_eight_execution_status.h \
-		../../../c_library_v2/common/mavlink_msg_fuel_status.h \
-		../../../c_library_v2/common/mavlink_msg_battery_info.h \
-		../../../c_library_v2/common/mavlink_msg_generator_status.h \
-		../../../c_library_v2/common/mavlink_msg_actuator_output_status.h \
-		../../../c_library_v2/common/mavlink_msg_time_estimate_to_target.h \
-		../../../c_library_v2/common/mavlink_msg_tunnel.h \
-		../../../c_library_v2/common/mavlink_msg_can_frame.h \
-		../../../c_library_v2/common/mavlink_msg_onboard_computer_status.h \
-		../../../c_library_v2/common/mavlink_msg_component_information.h \
-		../../../c_library_v2/common/mavlink_msg_component_information_basic.h \
-		../../../c_library_v2/common/mavlink_msg_component_metadata.h \
-		../../../c_library_v2/common/mavlink_msg_play_tune_v2.h \
-		../../../c_library_v2/common/mavlink_msg_supported_tunes.h \
-		../../../c_library_v2/common/mavlink_msg_event.h \
-		../../../c_library_v2/common/mavlink_msg_current_event_sequence.h \
-		../../../c_library_v2/common/mavlink_msg_request_event.h \
-		../../../c_library_v2/common/mavlink_msg_response_event_error.h \
-		../../../c_library_v2/common/mavlink_msg_available_modes.h \
-		../../../c_library_v2/common/mavlink_msg_current_mode.h \
-		../../../c_library_v2/common/mavlink_msg_available_modes_monitor.h \
-		../../../c_library_v2/common/mavlink_msg_illuminator_status.h \
-		../../../c_library_v2/common/mavlink_msg_canfd_frame.h \
-		../../../c_library_v2/common/mavlink_msg_can_filter_modify.h \
-		../../../c_library_v2/common/mavlink_msg_wheel_distance.h \
-		../../../c_library_v2/common/mavlink_msg_winch_status.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_basic_id.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_location.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_authentication.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_self_id.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_system.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_operator_id.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_message_pack.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_arm_status.h \
-		../../../c_library_v2/common/mavlink_msg_open_drone_id_system_update.h \
-		../../../c_library_v2/common/mavlink_msg_hygrometer_sensor.h \
-		../../../c_library_v2/standard/standard.h \
-		../../../c_library_v2/standard/mavlink_msg_global_position_int.h \
-		../../../c_library_v2/standard/mavlink_msg_autopilot_version.h \
-		../../../c_library_v2/minimal/minimal.h \
-		../../../c_library_v2/minimal/mavlink_msg_heartbeat.h \
-		../../../c_library_v2/mavlink_get_info.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mavlinkinterface.o ../../mavlinkinterface.cpp
+udpstreamer.o: ../../stream/udpstreamer.cpp ../../stream/udpstreamer.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o udpstreamer.o ../../stream/udpstreamer.cpp
 
-udpstreamer.o: ../../udpstreamer.cpp ../../udpstreamer.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o udpstreamer.o ../../udpstreamer.cpp
+moc_canbus.o: moc_canbus.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_canbus.o moc_canbus.cpp
+
+moc_canparserworker.o: moc_canparserworker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_canparserworker.o moc_canparserworker.cpp
 
 moc_clickablelabel.o: moc_clickablelabel.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_clickablelabel.o moc_clickablelabel.cpp

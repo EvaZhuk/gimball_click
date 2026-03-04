@@ -1,14 +1,20 @@
-#include "mainwindow.h"
+#include "gui/mainwindow.h"
+#include "can/transport/CannelloniFrame.h"
 #include <QVBoxLayout>
 #include <QDebug>
 #include <QPoint>
 #include <QTimer>
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
+#include <QMutexLocker>
 #include <algorithm> // Для std::clamp
+#include <can/canbus.h>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), label(new ClickableLabel(this)), timer(new QTimer(this)) {
+    : QMainWindow(parent),
+            label(new ClickableLabel(this)),
+            timer(new QTimer(this)),
+            localMessageQueue(1000)        {
 
     label->setFixedSize(1920, 1080);
     label->setAlignment(Qt::AlignCenter);
@@ -36,6 +42,33 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
+    //----- CAN bus
+    canBus = new CanBus(this);
+    connect(canBus, &CanBus::packetReceived, this, [this](const QByteArray &packetData) {
+        // Перетворення отриманого пакету в hex і виведення в консоль
+        QString hexString = canBus->toHexString(packetData);
+        // qDebug() << "Received CAN packet:" << hexString;
+
+        try {
+            // обробка пакета канелоні
+            CannelloniFrame frame(packetData);
+
+            QMutexLocker locker(&queueMutex); // Блокуємо доступ до черги
+
+            activeRX = 50;
+
+            // Отримуємо тимчасову чергу з кадру
+            std::queue<std::vector<uint8_t>> frameQueue = frame.GetMessageQueue();
+
+            // Додаємо всі повідомлення в спільну чергу
+            while (!frameQueue.empty()) {
+                localMessageQueue.push(frameQueue.front());
+                frameQueue.pop();
+            }
+        } catch (const std::exception &e) {
+            qWarning() << "Error parsing CannelloniFrame:" << e.what();
+        }
+    });
 
     timer->start(30); // 30 мс інтервал оновлення (приблизно 33.3 кадри/сек)
 }

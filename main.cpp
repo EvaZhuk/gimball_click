@@ -1,4 +1,5 @@
-#include "mainwindow.h"
+#include "gui/mainwindow.h"
+#include "mavlink/mavlinkinterface.h"
 
 #include <QApplication>
 
