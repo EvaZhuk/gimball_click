@@ -23,9 +23,12 @@ public:
 signals:
     void packetReceived(const QByteArray &data); // Сигнал для повідомлення про отриманий пакет
 
+private slots:
+   void readPendingDatagrams();
+
 private:
-    QUdpSocket *udpSocket;
-    void readPendingDatagrams();
+    QUdpSocket *udpSocket = nullptr;
+    quint16 m_port = 14500;
 };
 
 #endif // CANBUS_H

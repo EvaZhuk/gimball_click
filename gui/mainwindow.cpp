@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QPoint>
 #include <QTimer>
+#include <QDateTime>
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 #include <QMutexLocker>
@@ -14,7 +15,6 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
     label(new ClickableLabel(this)),
-    timer(new QTimer(this)),
     localMessageQueue{1000}
 {
     initUI();
@@ -25,12 +25,12 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {
-    cap.release();
-        if (videoWorker) videoWorker->stop();
-        if (videoThread) {
-            videoThread->quit();
-            videoThread->wait();
-        }
+    //cap.release();
+    if (videoWorker) videoWorker->stop();
+    if (videoThread) {
+        videoThread->quit();
+        videoThread->wait();
+    }
 
     // Відправити нульові швидкості, щоб гімбал зупинився при закритті програми
 }
@@ -53,114 +53,19 @@ void MainWindow::initUI()
     //connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
 }
 
-void MainWindow::updateFrame() {
-    cv::Mat frame;
-    if (!cap.read(frame)) {
-        qDebug() << "Failed to read frame from RTSP stream. Attempting to reopen...";
-        cap.release();
-        cap.open("rtsp://192.168.144.25:8554/main.264", cv::CAP_FFMPEG);
-        if (!cap.isOpened()) {
-            qDebug() << "Still failed to open RTSP stream.";
-        }
-        return;
-    }
-
-    if (trackingActive && tracker) {
-        cv::Rect tempIntRect = trackingROI;
-        bool ok = tracker->update(frame, tempIntRect);
-
-        if (ok) {
-            trackingROI = tempIntRect;
-            cv::rectangle(frame, trackingROI, cv::Scalar(0, 255, 0), 2); // Зелений прямокутник
-
-            float cx = trackingROI.x + trackingROI.width / 2.0f;
-            float cy = trackingROI.y + trackingROI.height / 2.0f;
-
-            // Вимірюємо помилку в пікселях від центру кадру
-            float pixel_error_x = cx - frame.cols / 2.0f;
-            float pixel_error_y = frame.rows / 2.0f - cy; // Y вісь інвертована для pitch (позитивний вгору)
-
-            // Перетворюємо піксельну помилку в кутову помилку (градуси)
-            float angle_per_pixel_yaw = FOV_HORIZONTAL_DEG / frame.cols;
-            float angle_per_pixel_pitch = FOV_VERTICAL_DEG / frame.rows;
-
-            float errorYaw = pixel_error_x * angle_per_pixel_yaw;
-            float errorPitch = pixel_error_y * angle_per_pixel_pitch;
-
-            float dt = timer->interval() / 1000.0f; // Час в секундах між оновленнями
-
-            // // PID розрахунки для Yaw (панорама)
-            // integralYaw += errorYaw * dt;
-            // // Обмеження інтегральної складової для запобігання "wind-up"
-            // integralYaw = std::clamp(integralYaw, -100.0f, 100.0f); // Приклад меж
-
-            // float derivativeYaw = (errorYaw - previousErrorYaw) / dt;
-            // previousErrorYaw = errorYaw;
-
-            // float targetSpeedYaw = Kp_yaw * errorYaw + Ki_yaw * integralYaw + Kd_yaw * derivativeYaw;
-
-            // // PID розрахунки для Pitch (нахил)
-            // integralPitch += errorPitch * dt;
-            // // Обмеження інтегральної складової
-            // integralPitch = std::clamp(integralPitch, -100.0f, 100.0f); // Приклад меж
-
-            // float derivativePitch = (errorPitch - previousErrorPitch) / dt;
-            // previousErrorPitch = errorPitch;
-
-            // float targetSpeedPitch = Kp_pitch * errorPitch + Ki_pitch * integralPitch + Kd_pitch * derivativePitch;
-
-            // // Обмеження розрахованих швидкостей PID-контролером до розумних меж (наприклад, 30 deg/sec)
-            // // Ці значення будуть масштабуватися в siyisender.cpp до -100..100
-            // targetSpeedYaw = std::clamp(targetSpeedYaw, -30.0f, 30.0f);
-            // targetSpeedPitch = std::clamp(targetSpeedPitch, -30.0f, 30.0f);
-
-            // // Відправка команд швидкості до гімбала Siyi
-            // siyi.sendSpeeds(targetSpeedYaw, targetSpeedPitch, 0.0f); // Roll speed зазвичай 0 для трекінгу
-
-            // qDebug() << "[PID Output] Yaw Speed:" << targetSpeedYaw << "Pitch Speed:" << targetSpeedPitch;
-
-        } else {
-            qDebug() << "TRACKER LOST - Resetting PID and stopping gimbal.";
-            trackingActive = false;
-            // Скидання інтегральної складової та попередніх помилок при втраті трекера
-            /*integralYaw = 0.0f;
-            integralPitch = 0.0f;
-            previousErrorYaw = 0.0f;
-            previousErrorPitch = 0.0f;
-            // Відправити нульові швидкості, щоб камера зупинилася
-            siyi.sendSpeeds(0.0f, 0.0f, 0.0f);*/
-        }
-    }
-
-    // Відображення центрального хрестика на кадрі
-    int cx_frame = frame.cols / 2;
-    int cy_frame = frame.rows / 2;
-    int size = 20;
-    cv::line(frame, cv::Point(cx_frame - size, cy_frame), cv::Point(cx_frame + size, cy_frame), cv::Scalar(0, 0, 255), 2); // Червоний хрестик
-    cv::line(frame, cv::Point(cx_frame, cy_frame - size), cv::Point(cx_frame, cy_frame + size), cv::Scalar(0, 0, 255), 2);
-
-    drawFPS(frame);
-    //udpStreamer.sendFrame(frame);
-
-    // Відображення кадру на QLabel
-    cv::resize(frame, frame, cv::Size(label->width(), label->height()));
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
-    QImage img(frame.data, frame.cols, frame.rows, frame.step, QImage::Format_RGB888);
-    label->setPixmap(QPixmap::fromImage(img));
-}
-
-
 
 void MainWindow::onLabelClicked(QPoint pos) {
     qDebug() << "Clicked on screen:" << pos;
 
-    if (lastFrame.empty()) {
-        qDebug() << "No frame available for tracker init";
-        return;
+    cv::Mat initFrame;
+    {
+        QMutexLocker locker(&frameMutex);
+        if (lastFrame.empty()) {
+            qDebug() << "No frame available for tracker init";
+            return;
+        }
+        initFrame = lastFrame.clone();
     }
-
-    QMutexLocker locker(&frameMutex);
-    cv::Mat initFrame = lastFrame.clone();
 
     int frameW = initFrame.cols;
     int frameH = initFrame.rows;
@@ -210,39 +115,6 @@ void MainWindow::onLabelClicked(QPoint pos) {
 
 
 
-void MainWindow::drawFPS(cv::Mat frame)
-{
-    static int frameCount = 0;
-    static QElapsedTimer timer;
-    static qint64 lastTime = 0;
-    static double fps = 0.0;
-
-    if(!timer.isValid()){
-        timer.start();
-    }
-
-    frameCount++;
-    qint64 elapsed = timer.elapsed();
-
-    if(elapsed - lastTime >= 1000){ //each second
-        fps = (frameCount*1000)/(elapsed-lastTime);
-        lastTime = elapsed;
-        frameCount = 0;
-    }
-
-    //draw FP{S at upper left corner
-    cv::putText(frame,
-                cv::format("FPS: %.1f", fps),
-                cv::Point(10, 30),
-                cv::FONT_HERSHEY_SIMPLEX,
-                0.8,
-                cv::Scalar(0,255,0),
-                2,
-                cv::LINE_AA);
-}
-
-
-
 void MainWindow::initVideoThread()
 {
     videoThread = new QThread(this);
@@ -260,7 +132,54 @@ void MainWindow::initVideoThread()
     connect(videoThread, &QThread::started, videoWorker, &VideoWorker::start);
     connect(this, &MainWindow::destroyed, videoWorker, &VideoWorker::stop);
 
-    connect(videoWorker, &VideoWorker::frameReady, this, &MainWindow::onFrameReady, Qt::QueuedConnection);
+    //connect(videoWorker, &VideoWorker::frameReady, this, &MainWindow::onFrameReady, Qt::QueuedConnection);
+    //Таймер відображення
+    displayTimer = new QTimer(this);
+    connect(displayTimer, &QTimer::timeout, this, [this]() {
+        if (!videoWorker) return;
+
+        cv::Mat frameBgr;
+        quint64 fid = 0; // номер останнього кадру
+        qint64 tsMs = 0;
+
+        if (!videoWorker->tryGetLatestFrame(frameBgr, fid, tsMs)) return;
+
+        // save for click/ROI
+        {
+            QMutexLocker locker(&frameMutex);
+            lastFrame = frameBgr; // frameBgr already clone() from worker getter
+        }
+
+        // --- CONTROL: draw fps + latency + dropped estimate ---
+        if (!uiFpsT.isValid()) uiFpsT.start();
+        uiCnt++;
+
+        const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+        const qint64 latencyMs = (tsMs > 0) ? (nowMs - tsMs) : -1; //затримка кадру в мс(вік кадру між моментом “worker записав latest” і моментом “UI його взяв і порахував now”)
+
+        qint64 dropped = 0; //пропуски кадрів
+        if (lastDrawId != 0 && fid > lastDrawId) dropped = (qint64)(fid - lastDrawId - 1);
+        lastDrawId = fid;
+
+        if (uiFpsT.elapsed() >= 1000) {
+            qDebug() << "[UI draw fps]" << uiCnt
+                     << "lat(ms)=" << latencyMs
+                     << "drop~" << dropped
+                     << "fid=" << fid; //номер кадру який відобразився
+            uiCnt = 0;
+            uiFpsT.restart();
+        }
+        // --- END CONTROL ---
+
+        // display
+        cv::Mat rgb;
+        cv::cvtColor(frameBgr, rgb, cv::COLOR_BGR2RGB);
+        QImage img(rgb.data, rgb.cols, rgb.rows, (int)rgb.step, QImage::Format_RGB888);
+        label->setPixmap(QPixmap::fromImage(img.copy()));
+    });
+    displayTimer->start(33); // 30 Hz UI
+    //displayTimer->start(16); // 60 Hz UI
+
     connect(videoWorker, &VideoWorker::status, this, &MainWindow::onVideoStatus, Qt::QueuedConnection);
 
     // cleanup
@@ -268,19 +187,9 @@ void MainWindow::initVideoThread()
 
     videoThread->start();
 
-
-
-    // cap.open("/home/lps/2025-10-14 14-52-14.mp4");
-    // if (!cap.isOpened()) {
-    //     qDebug() << "Failed to open RTSP stream. Check camera IP/port or network connection.";
-    //     return;
-    // }
-
-    // cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
-    // cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
-    // videoSize = QSize(1920, 1080);
 }
 
+/*
 void MainWindow::initVideo()
 {
 
@@ -298,35 +207,35 @@ void MainWindow::initVideo()
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
     videoSize = QSize(1920, 1080);
 }
+*/
+
+// void MainWindow::onFrameReady(const QImage &img)
+// {
+//     static QElapsedTimer fpsT;
+//     static int fpsCnt = 0;
+//     if (!fpsT.isValid()) fpsT.start();
+
+//     fpsCnt++;
+//     if (fpsT.elapsed() >= 1000) {
+//         qDebug() << "[UI draw fps]" << fpsCnt;
+//         fpsCnt = 0;
+//         fpsT.restart();
+//     }
 
 
-void MainWindow::onFrameReady(const QImage &img)
-{
-    static QElapsedTimer fpsT;
-    static int fpsCnt = 0;
-    if (!fpsT.isValid()) fpsT.start();
+//     // конвертація назад у cv::Mat
+//     cv::Mat frame(img.height(),
+//                   img.width(),
+//                   CV_8UC3,
+//                   const_cast<uchar*>(img.bits()),
+//                   img.bytesPerLine());
 
-    fpsCnt++;
-    if (fpsT.elapsed() >= 1000) {
-        qDebug() << "[UI draw fps]" << fpsCnt;
-        fpsCnt = 0;
-        fpsT.restart();
-    }
+//     QMutexLocker locker(&frameMutex);
+//     lastFrame = frame.clone();   // зберігаємо копію
 
-
-    // конвертація назад у cv::Mat
-    cv::Mat frame(img.height(),
-                  img.width(),
-                  CV_8UC3,
-                  const_cast<uchar*>(img.bits()),
-                  img.bytesPerLine());
-
-    QMutexLocker locker(&frameMutex);
-    lastFrame = frame.clone();   // зберігаємо копію
-
-    // якщо label — ClickableLabel
-    label->setPixmap(QPixmap::fromImage(img));
-}
+//     // якщо label — ClickableLabel
+//     label->setPixmap(QPixmap::fromImage(img));
+// }
 
 void MainWindow::onVideoStatus(const QString &txt)
 {
@@ -335,6 +244,7 @@ void MainWindow::onVideoStatus(const QString &txt)
 
 void MainWindow::initCAN()
 {
+    qDebug() << "[MainWindow] thread =" << QThread::currentThread();
     canBus = new CanBus(this);
 
     // RX callback

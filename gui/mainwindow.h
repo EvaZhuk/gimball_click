@@ -26,18 +26,36 @@ public:
     ~MainWindow();
 
 private slots:
-    void updateFrame();
     void onLabelClicked(QPoint pos);
-    void onFrameReady(const QImage &img);
     void onVideoStatus(const QString &txt);
 
 private:
     ClickableLabel *label;
-    QTimer *timer;
-    cv::VideoCapture cap;
-    UdpStreamer udpStreamer;
-    QSize videoSize;
-    CanBus *canBus;
+    QTimer *displayTimer = nullptr;
+
+    cv::Mat lastFrame;
+    QMutex frameMutex;
+
+    QThread *videoThread = nullptr;
+    VideoWorker *videoWorker = nullptr;
+
+    // UI контроль
+    QElapsedTimer uiFpsT;
+    int uiCnt = 0;
+    quint64 lastDrawId = 0;
+
+    CanBus *canBus = nullptr;
+    int activeRX = 0;
+    CircularBuffer<std::vector<uint8_t>> localMessageQueue;
+    QMutex queueMutex;
+
+    CANParserWorker *parserWorker;
+    QThread *parserThread;
+
+    cv::Ptr<cv::TrackerCSRT> tracker;
+    cv::Rect2d trackingROI;
+    bool trackingActive = false;
+
     // Змінні для PID контролера
     float Kp_yaw, Ki_yaw, Kd_yaw;
     float Kp_pitch, Ki_pitch, Kd_pitch;
@@ -52,23 +70,6 @@ private:
     const float FOV_HORIZONTAL_DEG = 107.8f;
     const float FOV_VERTICAL_DEG = 74.6f;
 
-    cv::Ptr<cv::TrackerCSRT> tracker;
-    cv::Rect2d trackingROI;
-    bool trackingActive = false;
-    void drawFPS(cv::Mat frame);
-
-    int activeRX = 0;
-    CircularBuffer<std::vector<uint8_t>> localMessageQueue;
-    QMutex queueMutex;
-    QMutex frameMutex;
-
-    CANParserWorker *parserWorker;
-    QThread *parserThread;
-
-    QThread *videoThread = nullptr;
-    VideoWorker *videoWorker = nullptr;
-
-    cv::Mat lastFrame;
 
     void initUI();
     void initVideo();
@@ -77,7 +78,6 @@ private:
 
     void setupParserThread();
     void setupQueueTransfer();
-
     void handleCANPacket(const QByteArray &packetData);
     void transferQueue();
 
