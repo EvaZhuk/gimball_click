@@ -17,6 +17,7 @@
 #include "clickablelabel.h"
 
 #include "stream/udpstreamer.h"
+#include "video/videoworker.h"
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
@@ -27,6 +28,8 @@ public:
 private slots:
     void updateFrame();
     void onLabelClicked(QPoint pos);
+    void onFrameReady(const QImage &img);
+    void onVideoStatus(const QString &txt);
 
 private:
     ClickableLabel *label;
@@ -57,12 +60,19 @@ private:
     int activeRX = 0;
     CircularBuffer<std::vector<uint8_t>> localMessageQueue;
     QMutex queueMutex;
+    QMutex frameMutex;
 
     CANParserWorker *parserWorker;
     QThread *parserThread;
 
+    QThread *videoThread = nullptr;
+    VideoWorker *videoWorker = nullptr;
+
+    cv::Mat lastFrame;
+
     void initUI();
     void initVideo();
+    void initVideoThread();
     void initCAN();
 
     void setupParserThread();
@@ -70,6 +80,7 @@ private:
 
     void handleCANPacket(const QByteArray &packetData);
     void transferQueue();
+
 };
 
 #endif // MAINWINDOW_H

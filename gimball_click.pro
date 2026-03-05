@@ -21,7 +21,8 @@ SOURCES += \
     main.cpp \
     gui/mainwindow.cpp \
     mavlink/mavlinkinterface.cpp \
-    stream/udpstreamer.cpp
+    stream/udpstreamer.cpp \
+    video/videoworker.cpp
 
 HEADERS += \
     can/transport/CannelloniFrame.h \
@@ -33,7 +34,8 @@ HEADERS += \
     gui/clickablelabel.h \
     gui/mainwindow.h \
     mavlink/mavlinkinterface.h \
-    stream/udpstreamer.h
+    stream/udpstreamer.h \
+    video/videoworker.h
 
 FORMS += \
     mainwindow.ui

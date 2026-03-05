@@ -18,14 +18,20 @@ MainWindow::MainWindow(QWidget *parent)
     localMessageQueue{1000}
 {
     initUI();
-    initVideo();
+    initVideoThread();
     initCAN();
 
-    timer->start(30); // 30 мс інтервал оновлення (приблизно 33.3 кадри/сек)
+    //timer->start(30); // 30 мс інтервал оновлення (приблизно 33.3 кадри/сек)
 }
 
 MainWindow::~MainWindow() {
     cap.release();
+        if (videoWorker) videoWorker->stop();
+        if (videoThread) {
+            videoThread->quit();
+            videoThread->wait();
+        }
+
     // Відправити нульові швидкості, щоб гімбал зупинився при закритті програми
 }
 
@@ -44,7 +50,7 @@ void MainWindow::initUI()
     connect(label, &ClickableLabel::clicked, this, &MainWindow::onLabelClicked);
 
     // Frame update timer
-    connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
+    //connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
 }
 
 void MainWindow::updateFrame() {
@@ -148,12 +154,13 @@ void MainWindow::updateFrame() {
 void MainWindow::onLabelClicked(QPoint pos) {
     qDebug() << "Clicked on screen:" << pos;
 
-    cv::Mat initFrame;
-    if (!cap.read(initFrame)) {
-        qDebug() << "Failed to read frame for tracker initialization! Ensure stream is active.";
-        trackingActive = false;
+    if (lastFrame.empty()) {
+        qDebug() << "No frame available for tracker init";
         return;
     }
+
+    QMutexLocker locker(&frameMutex);
+    cv::Mat initFrame = lastFrame.clone();
 
     int frameW = initFrame.cols;
     int frameH = initFrame.rows;
@@ -236,12 +243,51 @@ void MainWindow::drawFPS(cv::Mat frame)
 
 
 
-void MainWindow::initVideo()
+void MainWindow::initVideoThread()
 {
-    // open video source
+    videoThread = new QThread(this);
+    videoWorker = new VideoWorker();
 
+    videoWorker->moveToThread(videoThread);
+
+
+    // open video source
     //cap.open("rtsp://192.168.144.25:8554/main.264", cv::CAP_FFMPEG);
     //cap.open("/dev/video7");
+    //videoWorker->setRtspUrl("rtsp://192.168.144.25:8554/main.264");
+    videoWorker->setRtspUrl("/home/lps/2025-10-14 14-52-14.mp4");
+
+    connect(videoThread, &QThread::started, videoWorker, &VideoWorker::start);
+    connect(this, &MainWindow::destroyed, videoWorker, &VideoWorker::stop);
+
+    connect(videoWorker, &VideoWorker::frameReady, this, &MainWindow::onFrameReady, Qt::QueuedConnection);
+    connect(videoWorker, &VideoWorker::status, this, &MainWindow::onVideoStatus, Qt::QueuedConnection);
+
+    // cleanup
+    connect(videoThread, &QThread::finished, videoWorker, &QObject::deleteLater);
+
+    videoThread->start();
+
+
+
+    // cap.open("/home/lps/2025-10-14 14-52-14.mp4");
+    // if (!cap.isOpened()) {
+    //     qDebug() << "Failed to open RTSP stream. Check camera IP/port or network connection.";
+    //     return;
+    // }
+
+    // cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+    // cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+    // videoSize = QSize(1920, 1080);
+}
+
+void MainWindow::initVideo()
+{
+
+    // open video source
+    //cap.open("rtsp://192.168.144.25:8554/main.264", cv::CAP_FFMPEG);
+    //cap.open("/dev/video7");
+
     cap.open("/home/lps/2025-10-14 14-52-14.mp4");
     if (!cap.isOpened()) {
         qDebug() << "Failed to open RTSP stream. Check camera IP/port or network connection.";
@@ -251,6 +297,40 @@ void MainWindow::initVideo()
     cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
     videoSize = QSize(1920, 1080);
+}
+
+
+void MainWindow::onFrameReady(const QImage &img)
+{
+    static QElapsedTimer fpsT;
+    static int fpsCnt = 0;
+    if (!fpsT.isValid()) fpsT.start();
+
+    fpsCnt++;
+    if (fpsT.elapsed() >= 1000) {
+        qDebug() << "[UI draw fps]" << fpsCnt;
+        fpsCnt = 0;
+        fpsT.restart();
+    }
+
+
+    // конвертація назад у cv::Mat
+    cv::Mat frame(img.height(),
+                  img.width(),
+                  CV_8UC3,
+                  const_cast<uchar*>(img.bits()),
+                  img.bytesPerLine());
+
+    QMutexLocker locker(&frameMutex);
+    lastFrame = frame.clone();   // зберігаємо копію
+
+    // якщо label — ClickableLabel
+    label->setPixmap(QPixmap::fromImage(img));
+}
+
+void MainWindow::onVideoStatus(const QString &txt)
+{
+    qDebug() << "[Video]" << txt;
 }
 
 void MainWindow::initCAN()

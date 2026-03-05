@@ -61,12 +61,14 @@ SOURCES       = ../../can/transport/CannelloniFrame.cpp \
 		../../main.cpp \
 		../../gui/mainwindow.cpp \
 		../../mavlink/mavlinkinterface.cpp \
-		../../stream/udpstreamer.cpp moc_canbus.cpp \
+		../../stream/udpstreamer.cpp \
+		../../video/videoworker.cpp moc_canbus.cpp \
 		moc_canparserworker.cpp \
 		moc_clickablelabel.cpp \
 		moc_mainwindow.cpp \
 		moc_mavlinkinterface.cpp \
-		moc_udpstreamer.cpp
+		moc_udpstreamer.cpp \
+		moc_videoworker.cpp
 OBJECTS       = CannelloniFrame.o \
 		basecanmessage.o \
 		canbus.o \
@@ -77,12 +79,14 @@ OBJECTS       = CannelloniFrame.o \
 		mainwindow.o \
 		mavlinkinterface.o \
 		udpstreamer.o \
+		videoworker.o \
 		moc_canbus.o \
 		moc_canparserworker.o \
 		moc_clickablelabel.o \
 		moc_mainwindow.o \
 		moc_mavlinkinterface.o \
-		moc_udpstreamer.o
+		moc_udpstreamer.o \
+		moc_videoworker.o
 DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -176,7 +180,8 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../../gui/clickablelabel.h \
 		../../gui/mainwindow.h \
 		../../mavlink/mavlinkinterface.h \
-		../../stream/udpstreamer.h ../../can/transport/CannelloniFrame.cpp \
+		../../stream/udpstreamer.h \
+		../../video/videoworker.h ../../can/transport/CannelloniFrame.cpp \
 		../../can/message/basecanmessage.cpp \
 		../../can/canbus.cpp \
 		../../can/message/canmessagegeneric.cpp \
@@ -185,7 +190,8 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../../main.cpp \
 		../../gui/mainwindow.cpp \
 		../../mavlink/mavlinkinterface.cpp \
-		../../stream/udpstreamer.cpp
+		../../stream/udpstreamer.cpp \
+		../../video/videoworker.cpp
 QMAKE_TARGET  = gimball_click
 DESTDIR       = 
 TARGET        = gimball_click
@@ -383,8 +389,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.h can/util/CircularBuffer.h ../../can/message/basecanmessage.h ../../can/canbus.h ../../can/message/canmessagegeneric.h ../../can/parser/canparserworker.h ../../gui/clickablelabel.h ../../gui/mainwindow.h ../../mavlink/mavlinkinterface.h ../../stream/udpstreamer.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.cpp ../../can/message/basecanmessage.cpp ../../can/canbus.cpp ../../can/message/canmessagegeneric.cpp ../../can/parser/canparserworker.cpp ../../gui/clickablelabel.cpp ../../main.cpp ../../gui/mainwindow.cpp ../../mavlink/mavlinkinterface.cpp ../../stream/udpstreamer.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.h can/util/CircularBuffer.h ../../can/message/basecanmessage.h ../../can/canbus.h ../../can/message/canmessagegeneric.h ../../can/parser/canparserworker.h ../../gui/clickablelabel.h ../../gui/mainwindow.h ../../mavlink/mavlinkinterface.h ../../stream/udpstreamer.h ../../video/videoworker.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.cpp ../../can/message/basecanmessage.cpp ../../can/canbus.cpp ../../can/message/canmessagegeneric.cpp ../../can/parser/canparserworker.cpp ../../gui/clickablelabel.cpp ../../main.cpp ../../gui/mainwindow.cpp ../../mavlink/mavlinkinterface.cpp ../../stream/udpstreamer.cpp ../../video/videoworker.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../../mainwindow.ui $(DISTDIR)/
 
 
@@ -417,9 +423,9 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	clang++ -pipe -g -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_canbus.cpp moc_canparserworker.cpp moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp
+compiler_moc_header_make_all: moc_canbus.cpp moc_canparserworker.cpp moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp moc_videoworker.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_canbus.cpp moc_canparserworker.cpp moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp
+	-$(DEL_FILE) moc_canbus.cpp moc_canparserworker.cpp moc_clickablelabel.cpp moc_mainwindow.cpp moc_mavlinkinterface.cpp moc_udpstreamer.cpp moc_videoworker.cpp
 moc_canbus.cpp: ../../can/canbus.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
@@ -436,10 +442,12 @@ moc_clickablelabel.cpp: ../../gui/clickablelabel.h \
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../gui/clickablelabel.h -o moc_clickablelabel.cpp
 
 moc_mainwindow.cpp: ../../gui/mainwindow.h \
+		../../can/parser/canparserworker.h \
 		../../can/utils/CircularBuffer.h \
 		../../can/canbus.h \
 		../../gui/clickablelabel.h \
 		../../stream/udpstreamer.h \
+		../../video/videoworker.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../gui/mainwindow.h -o moc_mainwindow.cpp
@@ -698,6 +706,11 @@ moc_udpstreamer.cpp: ../../stream/udpstreamer.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../stream/udpstreamer.h -o moc_udpstreamer.cpp
 
+moc_videoworker.cpp: ../../video/videoworker.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../video/videoworker.h -o moc_videoworker.cpp
+
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
 compiler_moc_source_make_all:
@@ -732,17 +745,21 @@ canmessagegeneric.o: ../../can/message/canmessagegeneric.cpp ../../can/message/c
 		../../can/message/basecanmessage.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o canmessagegeneric.o ../../can/message/canmessagegeneric.cpp
 
-canparserworker.o: ../../can/parser/canparserworker.cpp ../../can/parser/canparserworker.h
+canparserworker.o: ../../can/parser/canparserworker.cpp ../../can/parser/canparserworker.h \
+		../../can/message/canmessagegeneric.h \
+		../../can/message/basecanmessage.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o canparserworker.o ../../can/parser/canparserworker.cpp
 
 clickablelabel.o: ../../gui/clickablelabel.cpp ../../gui/clickablelabel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o clickablelabel.o ../../gui/clickablelabel.cpp
 
 main.o: ../../main.cpp ../../gui/mainwindow.h \
+		../../can/parser/canparserworker.h \
 		../../can/utils/CircularBuffer.h \
 		../../can/canbus.h \
 		../../gui/clickablelabel.h \
 		../../stream/udpstreamer.h \
+		../../video/videoworker.h \
 		../../mavlink/mavlinkinterface.h \
 		/home/lps/c_library_v2/common/mavlink.h \
 		../../../c_library_v2/common/version.h \
@@ -991,10 +1008,13 @@ main.o: ../../main.cpp ../../gui/mainwindow.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
 
 mainwindow.o: ../../gui/mainwindow.cpp ../../gui/mainwindow.h \
+		../../can/parser/canparserworker.h \
 		../../can/utils/CircularBuffer.h \
 		../../can/canbus.h \
 		../../gui/clickablelabel.h \
-		../../stream/udpstreamer.h
+		../../stream/udpstreamer.h \
+		../../video/videoworker.h \
+		../../can/transport/CannelloniFrame.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../gui/mainwindow.cpp
 
 mavlinkinterface.o: ../../mavlink/mavlinkinterface.cpp ../../mavlink/mavlinkinterface.h \
@@ -1247,6 +1267,9 @@ mavlinkinterface.o: ../../mavlink/mavlinkinterface.cpp ../../mavlink/mavlinkinte
 udpstreamer.o: ../../stream/udpstreamer.cpp ../../stream/udpstreamer.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o udpstreamer.o ../../stream/udpstreamer.cpp
 
+videoworker.o: ../../video/videoworker.cpp ../../video/videoworker.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o videoworker.o ../../video/videoworker.cpp
+
 moc_canbus.o: moc_canbus.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_canbus.o moc_canbus.cpp
 
@@ -1264,6 +1287,9 @@ moc_mavlinkinterface.o: moc_mavlinkinterface.cpp
 
 moc_udpstreamer.o: moc_udpstreamer.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_udpstreamer.o moc_udpstreamer.cpp
+
+moc_videoworker.o: moc_videoworker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_videoworker.o moc_videoworker.cpp
 
 ####### Install
 
