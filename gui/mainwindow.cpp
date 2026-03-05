@@ -1,4 +1,5 @@
 #include "gui/mainwindow.h"
+#include "can/parser/canparserworker.h"
 #include "can/transport/CannelloniFrame.h"
 #include <QVBoxLayout>
 #include <QDebug>
@@ -12,10 +13,25 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
-            label(new ClickableLabel(this)),
-            timer(new QTimer(this)),
-            localMessageQueue(1000)        {
+    label(new ClickableLabel(this)),
+    timer(new QTimer(this)),
+    localMessageQueue{1000}
+{
+    initUI();
+    initVideo();
+    initCAN();
 
+    timer->start(30); // 30 мс інтервал оновлення (приблизно 33.3 кадри/сек)
+}
+
+MainWindow::~MainWindow() {
+    cap.release();
+    // Відправити нульові швидкості, щоб гімбал зупинився при закритті програми
+}
+
+void MainWindow::initUI()
+{
+    // Display widget
     label->setFixedSize(1920, 1080);
     label->setAlignment(Qt::AlignCenter);
 
@@ -24,58 +40,11 @@ MainWindow::MainWindow(QWidget *parent)
     layout->addWidget(label);
     setCentralWidget(central);
 
+    // User click → tracker init
     connect(label, &ClickableLabel::clicked, this, &MainWindow::onLabelClicked);
+
+    // Frame update timer
     connect(timer, &QTimer::timeout, this, &MainWindow::updateFrame);
-
-    //cap.open("rtsp://192.168.144.25:8554/main.264", cv::CAP_FFMPEG);
-    //cap.open("/dev/video7");
-    cap.open("/home/lps/2025-10-14 14-52-14.mp4");
-    if (!cap.isOpened()) {
-        qDebug() << "Failed to open RTSP stream. Check camera IP/port or network connection.";
-        return;
-    }
-
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
-    videoSize = QSize(1920, 1080);
-
-
-
-
-    //----- CAN bus
-    canBus = new CanBus(this);
-    connect(canBus, &CanBus::packetReceived, this, [this](const QByteArray &packetData) {
-        // Перетворення отриманого пакету в hex і виведення в консоль
-        QString hexString = canBus->toHexString(packetData);
-        // qDebug() << "Received CAN packet:" << hexString;
-
-        try {
-            // обробка пакета канелоні
-            CannelloniFrame frame(packetData);
-
-            QMutexLocker locker(&queueMutex); // Блокуємо доступ до черги
-
-            activeRX = 50;
-
-            // Отримуємо тимчасову чергу з кадру
-            std::queue<std::vector<uint8_t>> frameQueue = frame.GetMessageQueue();
-
-            // Додаємо всі повідомлення в спільну чергу
-            while (!frameQueue.empty()) {
-                localMessageQueue.push(frameQueue.front());
-                frameQueue.pop();
-            }
-        } catch (const std::exception &e) {
-            qWarning() << "Error parsing CannelloniFrame:" << e.what();
-        }
-    });
-
-    timer->start(30); // 30 мс інтервал оновлення (приблизно 33.3 кадри/сек)
-}
-
-MainWindow::~MainWindow() {
-    cap.release();
-    // Відправити нульові швидкості, щоб гімбал зупинився при закритті програми
 }
 
 void MainWindow::updateFrame() {
@@ -174,6 +143,8 @@ void MainWindow::updateFrame() {
     label->setPixmap(QPixmap::fromImage(img));
 }
 
+
+
 void MainWindow::onLabelClicked(QPoint pos) {
     qDebug() << "Clicked on screen:" << pos;
 
@@ -261,4 +232,105 @@ void MainWindow::drawFPS(cv::Mat frame)
                 cv::Scalar(0,255,0),
                 2,
                 cv::LINE_AA);
+}
+
+
+
+void MainWindow::initVideo()
+{
+    // open video source
+
+    //cap.open("rtsp://192.168.144.25:8554/main.264", cv::CAP_FFMPEG);
+    //cap.open("/dev/video7");
+    cap.open("/home/lps/2025-10-14 14-52-14.mp4");
+    if (!cap.isOpened()) {
+        qDebug() << "Failed to open RTSP stream. Check camera IP/port or network connection.";
+        return;
+    }
+
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+    videoSize = QSize(1920, 1080);
+}
+
+void MainWindow::initCAN()
+{
+    canBus = new CanBus(this);
+
+    // RX callback
+    connect(canBus, &CanBus::packetReceived,
+            this, &MainWindow::handleCANPacket);
+
+    setupParserThread();
+    setupQueueTransfer();
+
+    // Стартуємо прийом пакету
+    canBus->startReceiving();
+
+}
+
+void MainWindow::handleCANPacket(const QByteArray &packetData)
+{
+    try {
+        // decode Cannelloni frame
+        CannelloniFrame frame(packetData);
+
+        QMutexLocker locker(&queueMutex);// protect RX queue
+
+        activeRX = 50;
+
+        std::queue<std::vector<uint8_t>> frameQueue = frame.GetMessageQueue();
+
+        // move messages to circular buffer
+        while (!frameQueue.empty()) {
+
+            localMessageQueue.push(frameQueue.front());
+
+            frameQueue.pop();
+        }
+
+    } catch (const std::exception &e) {
+
+        qWarning() << "Error parsing CannelloniFrame:" << e.what();
+    }
+}
+
+void MainWindow::setupParserThread()
+{
+    parserWorker = new CANParserWorker();
+
+    parserThread = new QThread();
+
+    parserWorker->moveToThread(parserThread);
+
+    connect(parserThread,
+            &QThread::started,
+            parserWorker,
+            &CANParserWorker::process);
+
+    parserThread->start();
+}
+
+void MainWindow::setupQueueTransfer()
+{
+    QTimer *queueTransferTimer = new QTimer(this);
+
+    connect(queueTransferTimer, &QTimer::timeout,
+            this, &MainWindow::transferQueue);
+
+    queueTransferTimer->start(10); // Кожні 10 мс перевіряє чергу
+}
+
+void MainWindow::transferQueue()
+{
+    QMutexLocker locker(&queueMutex);
+
+    std::vector<uint8_t> msg;
+
+    const int maxMsgs = 100; // avoid long blocking
+
+    for (int i = 0; i < maxMsgs && localMessageQueue.pop(msg); ++i)
+    {
+        parserWorker->enqueueMessage(msg);
+    }
 }

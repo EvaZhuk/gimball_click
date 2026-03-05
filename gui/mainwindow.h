@@ -11,6 +11,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 
+#include "can/parser/canparserworker.h"
 #include "can/utils/CircularBuffer.h"
 #include "can/canbus.h"
 #include "clickablelabel.h"
@@ -57,6 +58,18 @@ private:
     CircularBuffer<std::vector<uint8_t>> localMessageQueue;
     QMutex queueMutex;
 
+    CANParserWorker *parserWorker;
+    QThread *parserThread;
+
+    void initUI();
+    void initVideo();
+    void initCAN();
+
+    void setupParserThread();
+    void setupQueueTransfer();
+
+    void handleCANPacket(const QByteArray &packetData);
+    void transferQueue();
 };
 
 #endif // MAINWINDOW_H
