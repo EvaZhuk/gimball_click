@@ -126,8 +126,8 @@ void MainWindow::initVideoThread()
     // open video source
     //cap.open("rtsp://192.168.144.25:8554/main.264", cv::CAP_FFMPEG);
     //cap.open("/dev/video7");
-    //videoWorker->setRtspUrl("rtsp://192.168.144.25:8554/main.264");
-    videoWorker->setRtspUrl("/home/lps/2025-10-14 14-52-14.mp4");
+    videoWorker->setRtspUrl("/dev/video7");
+    //videoWorker->setRtspUrl("/home/lps/2025-10-14 14-52-14.mp4");
 
     connect(videoThread, &QThread::started, videoWorker, &VideoWorker::start);
     connect(this, &MainWindow::destroyed, videoWorker, &VideoWorker::stop);
@@ -177,8 +177,8 @@ void MainWindow::initVideoThread()
         QImage img(rgb.data, rgb.cols, rgb.rows, (int)rgb.step, QImage::Format_RGB888);
         label->setPixmap(QPixmap::fromImage(img.copy()));
     });
-    displayTimer->start(33); // 30 Hz UI
-    //displayTimer->start(16); // 60 Hz UI
+    //displayTimer->start(33); // 30 Hz UI
+    displayTimer->start(16); // 60 Hz UI
 
     connect(videoWorker, &VideoWorker::status, this, &MainWindow::onVideoStatus, Qt::QueuedConnection);
 
