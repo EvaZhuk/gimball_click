@@ -41,7 +41,7 @@ enum class ParamType {
     DoubleL,
 };
 
-enum class NodeId { PLATFORM = 1, GYROVERTICAL, RANGE_FINDER, LASER_POINTER, THERMAL_CAMERA = 8 };
+enum class NodeId { PLATFORM = 1, GYROVERTICAL, RANGE_FINDER, LASER_POINTER, THERMAL_CAMERA = 8, VIDEO_UNIT = 9 };
 
 enum class IdNode1 {
     MODE = 0,
@@ -78,6 +78,14 @@ enum class IdNode4 {
     ERROR_CODE = 0xFE
 };
 
+enum class IdNode9 { CAPTURE_POINT = 0x0, RESET_CAPTURE = 0x1 };
+
+struct ClickPoint
+{
+    uint16_t x = 0;
+    uint16_t y = 0;
+};
+
 class CanMessageGeneric : public BaseCanMessage
 {
 public:
@@ -108,6 +116,12 @@ public:
     uint16_t GetUShortFromPayload();
     int16_t GetShortFromPayload();
     uint8_t GetByteFromPayload();
+    void ParseUShort2();
+    bool ParseCapturePoint(ClickPoint &pt);
+    bool StopTrack();
+private:
+    ClickPoint GetCapturePointFromPayload();
+
 };
 
 #endif // CANMESSAGEGENERIC_H

@@ -3,8 +3,8 @@
 
 #include <QObject>
 #include <QString>
-#include <opencv2/opencv.hpp>
 #include <QDebug>
+#include <opencv2/opencv.hpp>
 
 class UdpStreamer : public QObject
 {
@@ -13,21 +13,17 @@ public:
     explicit UdpStreamer(QObject *parent = nullptr);
     ~UdpStreamer();
 
-    // Initialize the GStreamer pipeline
-    // targetIp: The IP to send to (e.g., "127.0.0.1" or a remote IP)
-    // port: The UDP port (e.g., 5600)
     bool init(const QString &targetIp, int port, int width, int height, int fps);
-
-    // Send the processed frame
     void sendFrame(const cv::Mat &frame);
-
     void stop();
+
+    bool isReady() const;
 
 private:
     cv::VideoWriter writer;
-    bool isInitialized;
-    int streamWidth;
-    int streamHeight;
+    bool isInitialized = false;
+    int streamWidth = 0;
+    int streamHeight = 0;
 };
 
 #endif // UDPSTREAMER_H

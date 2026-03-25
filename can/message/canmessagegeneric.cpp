@@ -98,3 +98,55 @@ uint8_t CanMessageGeneric::ParseByte()
     return byteValue;
 }
 
+ClickPoint CanMessageGeneric::GetCapturePointFromPayload()
+{
+    ClickPoint pt;
+
+    pt.x = static_cast<uint16_t>(
+        (static_cast<uint16_t>(Message.PL[1]) << 8) |
+        static_cast<uint16_t>(Message.PL[0]));
+
+    pt.y = static_cast<uint16_t>(
+        (static_cast<uint16_t>(Message.PL[3]) << 8) |
+        static_cast<uint16_t>(Message.PL[2]));
+
+    return pt;
+}
+
+
+// void CanMessageGeneric::ParseUShort2()
+// {
+//     if (Node == static_cast<uint8_t>(NodeId::VIDEO_UNIT) /*&& Message.ACTION == 0*/) {
+//         switch (Message.ID) {
+//             case static_cast<uint8_t>(IdNode9::CAPTURE_POINT):
+//                 ClickPoint pt = GetCapturePointFromPayload();
+//                 break;
+//         }
+//     }
+// }
+
+
+// Передати координати точки для захоплення
+// 0х198 00 00 0D 00 xx xx yy yy - xx xx - точка кліку по осі Х, yy yy - по осі Y
+bool CanMessageGeneric::ParseCapturePoint(ClickPoint& pt)
+{
+    if (Node != static_cast<uint8_t>(NodeId::VIDEO_UNIT))
+        return false;
+
+    if (Message.ID != static_cast<uint8_t>(IdNode9::CAPTURE_POINT))
+        return false;
+
+    pt = GetCapturePointFromPayload();
+    return true;
+}
+
+bool CanMessageGeneric::StopTrack()
+{
+    if (Node != static_cast<uint8_t>(NodeId::VIDEO_UNIT))
+        return false;
+
+    if (Message.ID != static_cast<uint8_t>(IdNode9::RESET_CAPTURE))
+        return false;
+    else return true;
+
+}

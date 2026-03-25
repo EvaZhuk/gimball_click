@@ -7,6 +7,8 @@
 #include <QThread>
 #include <vector>
 
+
+
 class CANParserWorker : public QObject
 {
     Q_OBJECT
@@ -19,6 +21,8 @@ public:
 signals:
     void messageParsed(/*можна передати структуру*/);
     void parseError(const QString &error);
+    void capturePointReceived(uint16_t x, uint16_t y);
+    void stopTrackingReceived();
 
 public slots:
     void process();

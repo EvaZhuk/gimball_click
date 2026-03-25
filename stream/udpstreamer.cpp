@@ -1,7 +1,13 @@
 #include "udpstreamer.h"
 
-UdpStreamer::UdpStreamer(QObject *parent) : QObject(parent), isInitialized(false)
+UdpStreamer::UdpStreamer(QObject *parent)
+    : QObject(parent)
 {
+}
+
+bool UdpStreamer::isReady() const
+{
+    return isInitialized;
 }
 
 UdpStreamer::~UdpStreamer()
@@ -11,60 +17,67 @@ UdpStreamer::~UdpStreamer()
 
 bool UdpStreamer::init(const QString &targetIp, int port, int width, int height, int fps)
 {
-    if (isInitialized) {
-        stop();
-    }
+    stop();
 
     streamWidth = width;
     streamHeight = height;
 
-    // GStreamer Pipeline Description:
-    // 1. appsrc: OpenCV pushes frames here
-    // 2. videoconvert: Ensures color compatibility
-    // 3. x264enc: Compresses video (zerolatency for real-time control)
-    // 4. rtph264pay: Packages h264 into RTP packets
-    // 5. udpsink: Sends packets to target
+    // IMPORTANT:
+    // receiver expects:
+    // udpsrc ! tsparse ! tsdemux ! h264parse ! avdec_h264 ! ...
+    //
+    // so sender must send MPEG-TS with H264 inside, NOT RTP
     QString pipeline = QString(
                            "appsrc ! "
+                           "queue ! "
                            "videoconvert ! "
-                           "x264enc tune=zerolatency bitrate=2048 speed-preset=ultrafast ! "
-                           "rtph264pay config-interval=1 pt=96 ! "
-                           "udpsink host=%1 port=%2"
-                           ).arg(targetIp).arg(port);
+                           "video/x-raw,format=I420,width=%1,height=%2,framerate=%3/1 ! "
+                           "x264enc tune=zerolatency speed-preset=ultrafast bitrate=2048 key-int-max=%3 ! "
+                           "h264parse ! "
+                           "mpegtsmux ! "
+                           "udpsink host=%4 port=%5 sync=false async=false"
+                           ).arg(width).arg(height).arg(fps).arg(targetIp).arg(port);
 
-    // Open the writer using the GStreamer backend
-    writer.open(pipeline.toStdString(), cv::CAP_GSTREAMER, 0, fps, cv::Size(width, height), true);
+    qDebug() << "[UdpStreamer] open pipeline =" << pipeline;
+
+    writer.open(pipeline.toStdString(),
+                cv::CAP_GSTREAMER,
+                0,
+                fps,
+                cv::Size(width, height),
+                true);
 
     if (!writer.isOpened()) {
-        qDebug() << "[UdpStreamer] Failed to open GStreamer pipeline!";
-        qDebug() << "[UdpStreamer] Ensure OpenCV is compiled with GStreamer support.";
+        qDebug() << "[UdpStreamer] Failed to open GStreamer MPEG-TS pipeline";
         isInitialized = false;
         return false;
     }
 
-    qDebug() << "[UdpStreamer] Streaming to" << targetIp << ":" << port;
     isInitialized = true;
+    qDebug() << "[UdpStreamer] Streaming to" << targetIp << ":" << port
+             << "size=" << width << "x" << height << "fps=" << fps;
     return true;
 }
 
 void UdpStreamer::sendFrame(const cv::Mat &frame)
 {
-    if (!isInitialized || frame.empty()) return;
+    if (!isInitialized || frame.empty())
+        return;
 
-    // If the frame size changed unexpectedly, we might need to resize or handle error
-    if (frame.cols != streamWidth || frame.rows != streamHeight) {
-        cv::Mat resized;
-        cv::resize(frame, resized, cv::Size(streamWidth, streamHeight));
-        writer.write(resized);
-    } else {
+    if (frame.cols == streamWidth && frame.rows == streamHeight) {
         writer.write(frame);
+        return;
     }
+
+    cv::Mat resized;
+    cv::resize(frame, resized, cv::Size(streamWidth, streamHeight));
+    writer.write(resized);
 }
 
 void UdpStreamer::stop()
 {
-    if (writer.isOpened()) {
+    if (writer.isOpened())
         writer.release();
-    }
+
     isInitialized = false;
 }

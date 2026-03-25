@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QMutex>
+#include <QThread>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
@@ -18,7 +19,9 @@
 
 #include "stream/udpstreamer.h"
 #include "video/videoworker.h"
-class MainWindow : public QMainWindow {
+
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
@@ -29,50 +32,10 @@ private slots:
     void onLabelClicked(QPoint pos);
     void onVideoStatus(const QString &txt);
 
+    void onCapturePointReceived(quint16 x, quint16 y);
+    void onStopTrackingReceived();
 private:
-    ClickableLabel *label;
-    QTimer *displayTimer = nullptr;
-
-    cv::Mat lastFrame;
-    QMutex frameMutex;
-
-    QThread *videoThread = nullptr;
-    VideoWorker *videoWorker = nullptr;
-
-    // UI контроль
-    QElapsedTimer uiFpsT;
-    int uiCnt = 0;
-    quint64 lastDrawId = 0;
-
-    CanBus *canBus = nullptr;
-    int activeRX = 0;
-    CircularBuffer<std::vector<uint8_t>> localMessageQueue;
-    QMutex queueMutex;
-
-    CANParserWorker *parserWorker;
-    QThread *parserThread;
-
-    cv::Ptr<cv::TrackerCSRT> tracker;
-    cv::Rect2d trackingROI;
-    bool trackingActive = false;
-
-    // Змінні для PID контролера
-    float Kp_yaw, Ki_yaw, Kd_yaw;
-    float Kp_pitch, Ki_pitch, Kd_pitch;
-
-    float integralYaw;
-    float integralPitch;
-    float previousErrorYaw;
-    float previousErrorPitch;
-
-    // Поле зору камери (для об'єктива 4.3mm згідно з мануалом Siyi A8 Mini v1.6)
-    // Якщо у вас інший об'єктив, змініть ці значення
-    const float FOV_HORIZONTAL_DEG = 107.8f;
-    const float FOV_VERTICAL_DEG = 74.6f;
-
-
     void initUI();
-    void initVideo();
     void initVideoThread();
     void initCAN();
 
@@ -81,6 +44,55 @@ private:
     void handleCANPacket(const QByteArray &packetData);
     void transferQueue();
 
+    // tracking helpers
+    bool mapLabelPointToFrame(const QPoint &pos, const cv::Mat &frame, cv::Point &framePt);
+    void updateTrackerAndOverlay(cv::Mat &frame);
+    void drawTrackingOverlay(cv::Mat &frame, bool ok);
+
+private:
+    ClickableLabel *label = nullptr;
+    QTimer *displayTimer = nullptr;
+
+    cv::Mat lastFrame;
+    QMutex frameMutex;
+
+    QThread *videoThread = nullptr;
+    VideoWorker *videoWorker = nullptr;
+
+    UdpStreamer *udpStreamer = nullptr;
+
+    // UI control
+    QElapsedTimer uiFpsT;
+    int uiCnt = 0;
+    quint64 lastDrawId = 0;
+
+    // CAN
+    CanBus *canBus = nullptr;
+    int activeRX = 0;
+    CircularBuffer<std::vector<uint8_t>> localMessageQueue;
+    QMutex queueMutex;
+
+    CANParserWorker *parserWorker = nullptr;
+    QThread *parserThread = nullptr;
+
+    // tracker
+    cv::Ptr<cv::Tracker> tracker;
+    cv::Rect trackingROI;
+    bool trackingActive = false;
+
+    // PID vars
+    float Kp_yaw = 0.0f, Ki_yaw = 0.0f, Kd_yaw = 0.0f;
+    float Kp_pitch = 0.0f, Ki_pitch = 0.0f, Kd_pitch = 0.0f;
+
+    float integralYaw = 0.0f;
+    float integralPitch = 0.0f;
+    float previousErrorYaw = 0.0f;
+    float previousErrorPitch = 0.0f;
+
+    const float FOV_HORIZONTAL_DEG = 107.8f;
+    const float FOV_VERTICAL_DEG   = 74.6f;
+    void startTrackingAtPoint(int xCenter, int yCenter);
+    void resetTracking();
 };
 
 #endif // MAINWINDOW_H

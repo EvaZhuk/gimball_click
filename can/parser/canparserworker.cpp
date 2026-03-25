@@ -34,14 +34,28 @@ void CANParserWorker::process()
             CanMessageGeneric canMessage(message);
             switch (canMessage.Message.TYPE) {
             case ParamType::NoneType:
-                //LpsParameters::GetInstance().SetLaserError(canMessage.GetByteFromPayload());
+                if(canMessage.StopTrack()){
+                    emit stopTrackingReceived();
+                    qDebug() << "[CAN RX] STOP_TRACK";
+                }
                 break;
             case ParamType::UChar:
                 //canMessage.ParseUChar();
                 break;
             case ParamType::UShort2:
-                //canMessage.ParseUShort2();
+            {
+                ClickPoint pt;
+                if (canMessage.ParseCapturePoint(pt)) {
+
+                    emit capturePointReceived(static_cast<quint16>(pt.x),
+                                              static_cast<quint16>(pt.y));
+
+                    qDebug() << "[CAN RX] CAPTURE_POINT:"
+                             << "x =" << pt.x
+                             << "y =" << pt.y;
+                }
                 break;
+            }
             default:
                 break;
             }
