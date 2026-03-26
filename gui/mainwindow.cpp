@@ -121,6 +121,13 @@ void MainWindow::onCapturePointReceived(quint16 x, quint16 y)
     startTrackingAtPoint(static_cast<int>(x), static_cast<int>(y));
 }
 
+// Отримання нормалізованих координат кліку по КАН
+void MainWindow::onCapturePointNormalizedReceived(float nx, float ny)
+{
+    qDebug() << "[CAN RX] normalized capture point =" << nx << ny;
+    startTrackingNormalized(nx, ny);
+}
+
 // Спільна функція запуску трекінгу
 void MainWindow::startTrackingAtPoint(int xCenter, int yCenter)
 {
@@ -194,12 +201,19 @@ void MainWindow::drawTrackingOverlay(cv::Mat &frame, bool ok)
                          trackingROI.y + trackingROI.height / 2);
 
         cv::drawMarker(frame, center, cv::Scalar(0, 255, 0),
-                       cv::MARKER_CROSS, 20, 2);
+                       cv::MARKER_CROSS, 20, 1);
 
-        cv::putText(frame, "TRACK",
-                    cv::Point(trackingROI.x, std::max(20, trackingROI.y - 8)),
-                    cv::FONT_HERSHEY_SIMPLEX, 0.8,
-                    cv::Scalar(0, 255, 0), 2, cv::LINE_AA);
+        // cv::putText(frame, "TRACK",
+        //             cv::Point(trackingROI.x, std::max(20, trackingROI.y - 8)),
+        //             cv::FONT_HERSHEY_SIMPLEX, 0.8,
+        //             cv::Scalar(0, 255, 0), 2, cv::LINE_AA);
+
+        QString text = QString("x=%1 y=%2").arg(center.x).arg(center.y);
+
+        cv::putText(frame, text.toStdString(),
+                    cv::Point(trackingROI.x, std::max(15, trackingROI.y - 5)),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5,
+                    cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
     } else if (trackingActive && !ok) {
         cv::putText(frame, "TRACK LOST",
                     cv::Point(30, 40),
@@ -209,8 +223,8 @@ void MainWindow::drawTrackingOverlay(cv::Mat &frame, bool ok)
 
     // screen center marker
     cv::Point screenCenter(frame.cols / 2, frame.rows / 2);
-    cv::drawMarker(frame, screenCenter, cv::Scalar(255, 255, 0),
-                   cv::MARKER_CROSS, 30, 2);
+    //cv::drawMarker(frame, screenCenter, cv::Scalar(255, 255, 0),
+    //               cv::MARKER_CROSS, 30, 2);
 }
 
 void MainWindow::updateTrackerAndOverlay(cv::Mat &frame)
@@ -324,6 +338,7 @@ void MainWindow::initVideoThread()
 
     displayTimer->start(16);
     videoThread->start();
+
 }
 
 void MainWindow::onVideoStatus(const QString &txt)
@@ -378,8 +393,12 @@ void MainWindow::setupParserThread()
 
     // Тут підключаємо отримання точки по КАН і запуск трекінга
     // Оскільки parserWorker у своєму потоці, а MainWindow в іншому, це має бути queued
-    connect(parserWorker, &CANParserWorker::capturePointReceived,
-            this, &MainWindow::onCapturePointReceived,
+    // connect(parserWorker, &CANParserWorker::capturePointReceived,
+    //         this, &MainWindow::onCapturePointReceived,
+    //         Qt::QueuedConnection);
+
+    connect(parserWorker, &CANParserWorker::capturePointNormalizedReceived,
+            this, &MainWindow::onCapturePointNormalizedReceived,
             Qt::QueuedConnection);
 
     connect(parserWorker, &CANParserWorker::stopTrackingReceived,
@@ -434,4 +453,36 @@ void MainWindow::resetTracking()
     previousErrorPitch = 0.0f;
 
     qDebug() << "[TRACKING] reset";
+}
+
+// Почати трекінг по нормалізованим координатам
+void MainWindow::startTrackingNormalized(float nx, float ny)
+{
+    cv::Mat frame;
+    {
+        QMutexLocker locker(&frameMutex);
+        if (lastFrame.empty()) {
+            qDebug() << "[TRACKING] no frame available for normalized start";
+            return;
+        }
+        frame = lastFrame.clone();
+    }
+
+    nx = std::clamp(nx, 0.0f, 1.0f);
+    ny = std::clamp(ny, 0.0f, 1.0f);
+
+    const int frameW = frame.cols;
+    const int frameH = frame.rows;
+
+    const int x = std::clamp(static_cast<int>(nx * float(frameW - 1)), 0, frameW - 1);
+    const int y = std::clamp(static_cast<int>(ny * float(frameH - 1)), 0, frameH - 1);
+
+    qDebug() << "[TRACKING] normalized -> pixel:"
+             << "nx =" << nx
+             << "ny =" << ny
+             << "x =" << x
+             << "y =" << y
+             << "frame =" << frameW << "x" << frameH;
+
+    startTrackingAtPoint(x, y);
 }

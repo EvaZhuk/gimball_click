@@ -22,6 +22,7 @@ signals:
     void messageParsed(/*можна передати структуру*/);
     void parseError(const QString &error);
     void capturePointReceived(uint16_t x, uint16_t y);
+    void capturePointNormalizedReceived(float nx, float ny);
     void stopTrackingReceived();
 
 public slots:

@@ -17,6 +17,10 @@ public:
     void setSource(const QString &source);
     bool tryGetLatestFrame(cv::Mat &outBgr, quint64 &outId, qint64 &outTsMs);
 
+    int frameWidth() const;
+    int frameHeight() const;
+    double fps() const;
+
 public slots:
     void start();
     void stop();
@@ -54,4 +58,8 @@ private:
     cv::Mat m_latestBgr;
     quint64 m_latestId = 0;
     qint64  m_latestTsMs = 0;
+
+    int m_frameWidth = 0;
+    int m_frameHeight = 0;
+    double m_fps = 0.0;
 };

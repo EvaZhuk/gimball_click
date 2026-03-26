@@ -33,6 +33,7 @@ private slots:
     void onVideoStatus(const QString &txt);
 
     void onCapturePointReceived(quint16 x, quint16 y);
+    void onCapturePointNormalizedReceived(float nx, float ny);
     void onStopTrackingReceived();
 private:
     void initUI();
@@ -92,6 +93,7 @@ private:
     const float FOV_HORIZONTAL_DEG = 107.8f;
     const float FOV_VERTICAL_DEG   = 74.6f;
     void startTrackingAtPoint(int xCenter, int yCenter);
+    void startTrackingNormalized(float nx, float ny);
     void resetTracking();
 };
 

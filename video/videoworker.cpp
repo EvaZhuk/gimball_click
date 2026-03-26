@@ -77,6 +77,10 @@ void VideoWorker::closeSource()
 {
     if (m_cap.isOpened())
         m_cap.release();
+
+    m_frameWidth = 0;
+    m_frameHeight = 0;
+    m_fps = 0.0;
 }
 
 bool VideoWorker::openSource()
@@ -168,7 +172,21 @@ bool VideoWorker::openSource()
         return false;
     }
 
+    // Дізнаємося і виводимо розмір захопленого фрейма
+
+    m_frameWidth  = static_cast<int>(m_cap.get(cv::CAP_PROP_FRAME_WIDTH));
+    m_frameHeight = static_cast<int>(m_cap.get(cv::CAP_PROP_FRAME_HEIGHT));
+    m_fps         = m_cap.get(cv::CAP_PROP_FPS);
+
+    qDebug() << "[Video] opened:"
+             << "width =" << m_frameWidth
+             << "height =" << m_frameHeight
+             << "fps =" << m_fps;
+
+
     emit status("Video source opened");
+
+
     return true;
 }
 
@@ -288,4 +306,19 @@ void VideoWorker::start()
 void VideoWorker::stop()
 {
     m_running = false;
+}
+
+int VideoWorker::frameWidth() const
+{
+    return m_frameWidth;
+}
+
+int VideoWorker::frameHeight() const
+{
+    return m_frameHeight;
+}
+
+double VideoWorker::fps() const
+{
+    return m_fps;
 }

@@ -47,12 +47,17 @@ void CANParserWorker::process()
                 ClickPoint pt;
                 if (canMessage.ParseCapturePoint(pt)) {
 
-                    emit capturePointReceived(static_cast<quint16>(pt.x),
-                                              static_cast<quint16>(pt.y));
+                    const float nx = static_cast<float>(pt.x) / 65535.0f;
+                    const float ny = static_cast<float>(pt.y) / 65535.0f;
 
-                    qDebug() << "[CAN RX] CAPTURE_POINT:"
-                             << "x =" << pt.x
-                             << "y =" << pt.y;
+                    //emit capturePointReceived(nx, ny);
+                    emit capturePointNormalizedReceived(nx, ny);
+
+                    qDebug() << "[CAN RX] CAPTURE_POINT_NORM:"
+                             << "rawX =" << pt.x
+                             << "rawY =" << pt.y
+                             << "nx =" << nx
+                             << "ny =" << ny;
                 }
                 break;
             }
