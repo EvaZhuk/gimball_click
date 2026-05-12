@@ -43,7 +43,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::initUI()
 {
-    label->setFixedSize(1920, 1080);
+    label->setFixedSize(1280, 720);
     label->setAlignment(Qt::AlignCenter);
 
     QWidget *central = new QWidget(this);
@@ -97,7 +97,8 @@ void MainWindow::onLabelClicked(QPoint pos)
     {
         QMutexLocker locker(&frameMutex);
         if (lastFrame.empty()) {
-            qDebug() << "No frame available";
+            qDebug() << "No frame available"
+                        "";
             return;
         }
         frame = lastFrame.clone();
@@ -112,6 +113,24 @@ void MainWindow::onLabelClicked(QPoint pos)
     qDebug() << "[CLICK] local click frame point =" << framePt.x << framePt.y;
 
     startTrackingAtPoint(framePt.x, framePt.y);
+}
+
+
+void MainWindow::showFrameOnScreen(const cv::Mat &frameBgr)
+{
+    if (frameBgr.empty())
+        return;
+
+    cv::Mat rgb;
+    cv::cvtColor(frameBgr, rgb, cv::COLOR_BGR2RGB);
+
+    QImage img(rgb.data,
+               rgb.cols,
+               rgb.rows,
+               static_cast<int>(rgb.step),
+               QImage::Format_RGB888);
+
+    label->setPixmap(QPixmap::fromImage(img.copy()));
 }
 
 // Отримання кліку по КАН
@@ -315,7 +334,7 @@ void MainWindow::initVideoThread()
 
         // init streamer lazily from actual frame size
         if (udpStreamer && !udpStreamer->isReady()) {
-            udpStreamer->init("192.168.144.15", 5601, frameBgr.cols, frameBgr.rows, 25);
+            udpStreamer->init("192.168.144.15", 5601, frameBgr.cols, frameBgr.rows, 30);
         }
 
         // send FULL annotated frame to UDP
@@ -324,20 +343,85 @@ void MainWindow::initVideoThread()
         }
 
         // display same annotated frame in UI
-        cv::Mat rgb;
-        cv::cvtColor(frameBgr, rgb, cv::COLOR_BGR2RGB);
+        // cv::Mat rgb;
+        // cv::cvtColor(frameBgr, rgb, cv::COLOR_BGR2RGB);
 
-        QImage img(rgb.data,
-                   rgb.cols,
-                   rgb.rows,
-                   static_cast<int>(rgb.step),
-                   QImage::Format_RGB888);
+        // QImage img(rgb.data,
+        //            rgb.cols,
+        //            rgb.rows,
+        //            static_cast<int>(rgb.step),
+        //            QImage::Format_RGB888);
 
-        label->setPixmap(QPixmap::fromImage(img.copy()));
+        // label->setPixmap(QPixmap::fromImage(img.copy()));
+
+        // display same annotated frame in UI
+        //showFrameOnScreen(frameBgr);
     });
 
-    displayTimer->start(16);
+    displayTimer->start(33);
     videoThread->start();
+
+
+    // connect(displayTimer, &QTimer::timeout, this, [this]() {
+    //     if (!videoWorker)
+    //         return;
+
+    //     cv::Mat frameBgr;
+    //     quint64 fid = 0;
+    //     qint64 tsMs = 0;
+
+    //     if (!videoWorker->tryGetLatestFrame(frameBgr, fid, tsMs))
+    //         return;
+
+    //     if (frameBgr.empty())
+    //         return;
+
+    //     // не дублювати кадри
+    //     if (fid == lastUdpFrameId)
+    //         return;
+
+    //     lastUdpFrameId = fid;
+
+    //     // tracker update + ROI draw on FULL frame
+    //     updateTrackerAndOverlay(frameBgr);
+
+    //     // init streamer lazily from actual frame size
+    //     if (udpStreamer && !udpStreamer->isReady()) {
+    //         udpStreamer->init("192.168.144.15",
+    //                           5601,
+    //                           frameBgr.cols,
+    //                           frameBgr.rows,
+    //                           30);
+    //     }
+
+    //     // send FULL annotated frame to UDP
+    //     if (udpStreamer && udpStreamer->isReady()) {
+    //         udpStreamer->sendFrame(frameBgr);
+    //     }
+
+    //     if (!uiFpsT.isValid())
+    //         uiFpsT.start();
+
+    //     uiCnt++;
+
+    //     const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    //     const qint64 latencyMs = (tsMs > 0) ? (nowMs - tsMs) : -1;
+
+    //     if (uiFpsT.elapsed() >= 1000) {
+    //         qDebug() << "[UDP send fps]" << uiCnt
+    //                  << "lat(ms)=" << latencyMs
+    //                  << "fid=" << fid;
+
+    //         uiCnt = 0;
+    //         uiFpsT.restart();
+    //     }
+
+    //     // UI output disabled
+    //      showFrameOnScreen(frameBgr);
+    // });
+
+    // displayTimer->start(33);
+    // videoThread->start();
 
 }
 

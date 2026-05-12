@@ -36,6 +36,7 @@ private slots:
     void onCapturePointNormalizedReceived(float nx, float ny);
     void onStopTrackingReceived();
 private:
+
     void initUI();
     void initVideoThread();
     void initCAN();
@@ -49,7 +50,7 @@ private:
     bool mapLabelPointToFrame(const QPoint &pos, const cv::Mat &frame, cv::Point &framePt);
     void updateTrackerAndOverlay(cv::Mat &frame);
     void drawTrackingOverlay(cv::Mat &frame, bool ok);
-
+    void showFrameOnScreen(const cv::Mat &frameBgr);
 private:
     ClickableLabel *label = nullptr;
     QTimer *displayTimer = nullptr;
@@ -95,6 +96,8 @@ private:
     void startTrackingAtPoint(int xCenter, int yCenter);
     void startTrackingNormalized(float nx, float ny);
     void resetTracking();
+
+    quint64 lastUdpFrameId = 0;
 };
 
 #endif // MAINWINDOW_H
