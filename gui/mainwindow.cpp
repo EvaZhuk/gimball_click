@@ -271,7 +271,7 @@ void MainWindow::initVideoThread()
     videoWorker->moveToThread(videoThread);
 
     // choose source
-    videoWorker->setSource("/dev/video0");
+    videoWorker->setSource("/dev/video8");
     // videoWorker->setSource("/home/lps/2025-10-14 14-52-14.mp4");
     // videoWorker->setSource("rtsp://192.168.144.25:8554/main.264");
     // videoWorker->setSource("v4l2src device=/dev/video0 ! videoconvert ! video/x-raw,format=BGR ! appsink drop=1 sync=false");
@@ -355,7 +355,7 @@ void MainWindow::initVideoThread()
         // label->setPixmap(QPixmap::fromImage(img.copy()));
 
         // display same annotated frame in UI
-        //showFrameOnScreen(frameBgr);
+        showFrameOnScreen(frameBgr);
     });
 
     displayTimer->start(33);
