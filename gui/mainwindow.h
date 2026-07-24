@@ -12,6 +12,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 
+#include "can/message/canmessagegeneric.h"
 #include "can/parser/canparserworker.h"
 #include "can/utils/CircularBuffer.h"
 #include "can/canbus.h"
@@ -35,6 +36,9 @@ private slots:
     void onCapturePointReceived(quint16 x, quint16 y);
     void onCapturePointNormalizedReceived(float nx, float ny);
     void onStopTrackingReceived();
+    void onCameraFovReceived(float hDeg, float vDeg);
+    void onTrackingParamsReceived(uint16_t roiSize);
+
 private:
 
     void initUI();
@@ -93,6 +97,10 @@ private:
 
     const float FOV_HORIZONTAL_DEG = 107.8f;
     const float FOV_VERTICAL_DEG   = 74.6f;
+
+    CameraFov cameraFov;
+    TrackingParams trackingParams;
+
     void startTrackingAtPoint(int xCenter, int yCenter);
     void startTrackingNormalized(float nx, float ny);
     void resetTracking();

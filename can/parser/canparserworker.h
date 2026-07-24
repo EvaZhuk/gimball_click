@@ -24,6 +24,8 @@ signals:
     void capturePointReceived(uint16_t x, uint16_t y);
     void capturePointNormalizedReceived(float nx, float ny);
     void stopTrackingReceived();
+    void cameraFovReceived(float hDeg, float vDeg);
+    void trackingParamsReceived(uint16_t roiSize);
 
 public slots:
     void process();

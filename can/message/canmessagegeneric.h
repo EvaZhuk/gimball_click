@@ -78,12 +78,46 @@ enum class IdNode4 {
     ERROR_CODE = 0xFE
 };
 
-enum class IdNode9 { CAPTURE_POINT = 0x0, RESET_CAPTURE = 0x1 };
+enum class IdNode9 : uint8_t
+{
+    CAPTURE_POINT = 0x00,
+    RESET_CAPTURE = 0x01,
+    ROI_SIZE = 0x02,
+    FOV_H = 0x03,
+    FOV_V = 0x04
+};
 
+//точка захоплення x/y
 struct ClickPoint
 {
     uint16_t x = 0;
     uint16_t y = 0;
+};
+
+//FOV камери
+struct CameraFov
+{
+    float hDeg = 8.0f;  // horizontal FOV
+    float vDeg = 6.0f;  // vertical FOV
+};
+
+//параметри трекінга, наприклад roiSize
+struct TrackingParams
+{
+    uint16_t roiSize = 80;
+};
+
+//результат розрахунку відхилення
+struct TrackingDeviation
+{
+    float dxPx = 0.0f;
+    float dyPx = 0.0f;
+
+    float yawDeg = 0.0f;
+    float pitchDeg = 0.0f;
+
+    float yawCmd = 0.0f;
+    float pitchCmd = 0.0f;
 };
 
 class CanMessageGeneric : public BaseCanMessage
@@ -118,7 +152,10 @@ public:
     uint8_t GetByteFromPayload();
     void ParseUShort2();
     bool ParseCapturePoint(ClickPoint &pt);
+    bool ParseFOV(CameraFov &fov);
+    bool ParseTrackingParams(TrackingParams &params);
     bool StopTrack();
+
 private:
     ClickPoint GetCapturePointFromPayload();
 

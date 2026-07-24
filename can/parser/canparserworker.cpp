@@ -39,8 +39,17 @@ void CANParserWorker::process()
                     qDebug() << "[CAN RX] STOP_TRACK";
                 }
                 break;
-            case ParamType::UChar:
-                //canMessage.ParseUChar();
+            case ParamType::UShort:
+            {
+                // TrackingParams trackingParams;
+                // if (canMessage.ParseTrackingParams(trackingParams)) {
+                //     qDebug() << "[CAN RX] tracking params updated:"
+                //              << "roiSize =" << trackingParams.roiSize;
+
+                //     emit trackingParamsReceived(trackingParams.roiSize);
+                //     return;
+                // }
+            }
                 break;
             case ParamType::UShort2:
             {
@@ -58,6 +67,19 @@ void CANParserWorker::process()
                              << "rawY =" << pt.y
                              << "nx =" << nx
                              << "ny =" << ny;
+                }
+                break;
+            }
+            case ParamType::Float:
+            {
+                CameraFov cameraFov;
+                if (canMessage.ParseFOV(cameraFov)) {
+                    qDebug() << "[CAN RX] FOV updated:"
+                             << "H =" << cameraFov.hDeg
+                             << "V =" << cameraFov.vDeg;
+
+                    emit cameraFovReceived(cameraFov.hDeg, cameraFov.vDeg);
+                    return;
                 }
                 break;
             }

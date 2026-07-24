@@ -57,6 +57,7 @@ SOURCES       = ../../can/transport/CannelloniFrame.cpp \
 		../../can/canbus.cpp \
 		../../can/message/canmessagegeneric.cpp \
 		../../can/parser/canparserworker.cpp \
+		../../can/transport/SendDataFrame.cpp \
 		../../gui/clickablelabel.cpp \
 		../../main.cpp \
 		../../gui/mainwindow.cpp \
@@ -74,6 +75,7 @@ OBJECTS       = CannelloniFrame.o \
 		canbus.o \
 		canmessagegeneric.o \
 		canparserworker.o \
+		SendDataFrame.o \
 		clickablelabel.o \
 		main.o \
 		mainwindow.o \
@@ -150,6 +152,7 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang/qmake.conf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_post.prf \
+		../../.qmake.stash \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
@@ -171,6 +174,7 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		../../../../gimball_click.pro ../../can/transport/CannelloniFrame.h \
+		../../can/transport/SendDataFrame.h \
 		can/util/CircularBuffer.h \
 		../../can/message/basecanmessage.h \
 		../../can/canbus.h \
@@ -185,6 +189,7 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../../can/canbus.cpp \
 		../../can/message/canmessagegeneric.cpp \
 		../../can/parser/canparserworker.cpp \
+		../../can/transport/SendDataFrame.cpp \
 		../../gui/clickablelabel.cpp \
 		../../main.cpp \
 		../../gui/mainwindow.cpp \
@@ -265,6 +270,7 @@ Makefile: ../../gimball_click.pro /usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-c
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/qt_config.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang/qmake.conf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/toolchain.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
@@ -350,6 +356,7 @@ Makefile: ../../gimball_click.pro /usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-c
 /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/qt_config.prf:
 /usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang/qmake.conf:
 /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_post.prf:
+.qmake.stash:
 /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/exclusive_builds.prf:
 /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/toolchain.prf:
 /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/default_pre.prf:
@@ -386,8 +393,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.h can/util/CircularBuffer.h ../../can/message/basecanmessage.h ../../can/canbus.h ../../can/message/canmessagegeneric.h ../../can/parser/canparserworker.h ../../gui/clickablelabel.h ../../gui/mainwindow.h ../../mavlink/mavlinkinterface.h ../../stream/udpstreamer.h ../../video/videoworker.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.cpp ../../can/message/basecanmessage.cpp ../../can/canbus.cpp ../../can/message/canmessagegeneric.cpp ../../can/parser/canparserworker.cpp ../../gui/clickablelabel.cpp ../../main.cpp ../../gui/mainwindow.cpp ../../mavlink/mavlinkinterface.cpp ../../stream/udpstreamer.cpp ../../video/videoworker.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.h ../../can/transport/SendDataFrame.h can/util/CircularBuffer.h ../../can/message/basecanmessage.h ../../can/canbus.h ../../can/message/canmessagegeneric.h ../../can/parser/canparserworker.h ../../gui/clickablelabel.h ../../gui/mainwindow.h ../../mavlink/mavlinkinterface.h ../../stream/udpstreamer.h ../../video/videoworker.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.cpp ../../can/message/basecanmessage.cpp ../../can/canbus.cpp ../../can/message/canmessagegeneric.cpp ../../can/parser/canparserworker.cpp ../../can/transport/SendDataFrame.cpp ../../gui/clickablelabel.cpp ../../main.cpp ../../gui/mainwindow.cpp ../../mavlink/mavlinkinterface.cpp ../../stream/udpstreamer.cpp ../../video/videoworker.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../../mainwindow.ui $(DISTDIR)/
 
 
@@ -746,6 +753,9 @@ canparserworker.o: ../../can/parser/canparserworker.cpp ../../can/parser/canpars
 		../../can/message/canmessagegeneric.h \
 		../../can/message/basecanmessage.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o canparserworker.o ../../can/parser/canparserworker.cpp
+
+SendDataFrame.o: ../../can/transport/SendDataFrame.cpp ../../can/transport/SendDataFrame.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o SendDataFrame.o ../../can/transport/SendDataFrame.cpp
 
 clickablelabel.o: ../../gui/clickablelabel.cpp ../../gui/clickablelabel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o clickablelabel.o ../../gui/clickablelabel.cpp

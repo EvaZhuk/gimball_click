@@ -150,3 +150,52 @@ bool CanMessageGeneric::StopTrack()
     else return true;
 
 }
+
+bool CanMessageGeneric::ParseFOV(CameraFov &fov)
+{
+    fov = CameraFov{};
+    if (Node != static_cast<uint8_t>(NodeId::VIDEO_UNIT))
+        return false;
+
+    if (static_cast<uint8_t>(Message.TYPE) != static_cast<uint8_t>(ParamType::Float))
+        return false;
+
+    if (Message.ACTION != 0x00)
+        return false;
+
+    if (Message.ID == static_cast<uint8_t>(IdNode9::FOV_H)) {
+        fov.hDeg = GetFloatFromPayload();
+        return true;
+    }
+
+    if (Message.ID == static_cast<uint8_t>(IdNode9::FOV_V)) {
+        fov.vDeg = GetFloatFromPayload();
+        return true;
+    }
+
+    return false;
+}
+
+bool CanMessageGeneric::ParseTrackingParams(TrackingParams &params)
+{
+    if (Node != static_cast<uint8_t>(NodeId::VIDEO_UNIT))
+        return false;
+
+    if (Message.ACTION != 0x00)
+        return false;
+
+    if (Message.ID == static_cast<uint8_t>(IdNode9::ROI_SIZE)) {
+        if (Message.TYPE != ParamType::UShort)
+            return false;
+
+        const uint16_t value = GetUShortFromPayload();
+
+        // Захист від дурних значень
+        if (value < 10 || value > 1000)
+            return false;
+        params.roiSize = value;
+        return true;
+    }
+
+    return false;
+}

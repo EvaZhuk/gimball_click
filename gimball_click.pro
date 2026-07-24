@@ -17,6 +17,7 @@ SOURCES += \
     can/canbus.cpp \
     can/message/canmessagegeneric.cpp \
     can/parser/canparserworker.cpp \
+    can/transport/SendDataFrame.cpp \
     gui/clickablelabel.cpp \
     main.cpp \
     gui/mainwindow.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
 
 HEADERS += \
     can/transport/CannelloniFrame.h \
+    can/transport/SendDataFrame.h \
     can/util/CircularBuffer.h \
     can/message/basecanmessage.h \
     can/canbus.h \

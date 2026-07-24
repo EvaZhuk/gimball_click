@@ -147,6 +147,31 @@ void MainWindow::onCapturePointNormalizedReceived(float nx, float ny)
     startTrackingNormalized(nx, ny);
 }
 
+//Отримання розмірів поля зору камери
+void MainWindow::onCameraFovReceived(float hDeg, float vDeg)
+{
+    cameraFov.hDeg = hDeg;
+    cameraFov.vDeg = vDeg;
+
+    qDebug() << "[FOV] camera updated:"
+             << "H =" << cameraFov.hDeg
+             << "V =" << cameraFov.vDeg;
+}
+
+//Отримання roiSize
+void MainWindow::onTrackingParamsReceived(uint16_t roiSize)
+{
+    if (roiSize < 10 || roiSize > 1000) {
+        qDebug() << "[TRACKING PARAMS] invalid roiSize =" << roiSize;
+        return;
+    }
+
+    trackingParams.roiSize = roiSize;
+
+    qDebug() << "[TRACKING PARAMS] roiSize updated ="
+             << trackingParams.roiSize;
+}
+
 // Спільна функція запуску трекінгу
 void MainWindow::startTrackingAtPoint(int xCenter, int yCenter)
 {
@@ -168,8 +193,11 @@ void MainWindow::startTrackingAtPoint(int xCenter, int yCenter)
         return;
     }
 
-    const int roiW = 80;
-    const int roiH = 80;
+    // const int roiW = 80;
+    // const int roiH = 80;
+
+    const int roiW = trackingParams.roiSize;
+    const int roiH = trackingParams.roiSize;
 
     int x = xCenter - roiW / 2;
     int y = yCenter - roiH / 2;
@@ -271,7 +299,7 @@ void MainWindow::initVideoThread()
     videoWorker->moveToThread(videoThread);
 
     // choose source
-    videoWorker->setSource("/dev/video8");
+    videoWorker->setSource("/dev/video0");
     // videoWorker->setSource("/home/lps/2025-10-14 14-52-14.mp4");
     // videoWorker->setSource("rtsp://192.168.144.25:8554/main.264");
     // videoWorker->setSource("v4l2src device=/dev/video0 ! videoconvert ! video/x-raw,format=BGR ! appsink drop=1 sync=false");
@@ -301,14 +329,29 @@ void MainWindow::initVideoThread()
         if (!videoWorker->tryGetLatestFrame(frameBgr, fid, tsMs))
             return;
 
-        // tracker update + ROI draw on FULL frame
-        updateTrackerAndOverlay(frameBgr);
+        if (frameBgr.empty())
+            return;
 
-        // store annotated frame for possible next click
+        // Не обробляти один і той самий кадр повторно
+        if (fid == lastDrawId)
+            return;
+
+        qint64 dropped = 0;
+        if (lastDrawId != 0 && fid > lastDrawId)
+            dropped = static_cast<qint64>(fid - lastDrawId - 1);
+
+        lastDrawId = fid;
+
+        // Зберігаємо чистий кадр для кліку / старту трекінгу
+        cv::Mat cleanFrame = frameBgr.clone();
+
         {
             QMutexLocker locker(&frameMutex);
-            lastFrame = frameBgr.clone();
+            lastFrame = cleanFrame;
         }
+
+        // tracker update + ROI draw on FULL frame
+        updateTrackerAndOverlay(frameBgr);
 
         if (!uiFpsT.isValid())
             uiFpsT.start();
@@ -318,41 +361,29 @@ void MainWindow::initVideoThread()
         const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
         const qint64 latencyMs = (tsMs > 0) ? (nowMs - tsMs) : -1;
 
-        qint64 dropped = 0;
-        if (lastDrawId != 0 && fid > lastDrawId)
-            dropped = static_cast<qint64>(fid - lastDrawId - 1);
-        lastDrawId = fid;
-
         if (uiFpsT.elapsed() >= 1000) {
-            qDebug() << "[UI draw fps]" << uiCnt
+            qDebug() << "[Output fps]" << uiCnt
                      << "lat(ms)=" << latencyMs
                      << "drop~" << dropped
                      << "fid=" << fid;
+
             uiCnt = 0;
             uiFpsT.restart();
         }
 
         // init streamer lazily from actual frame size
         if (udpStreamer && !udpStreamer->isReady()) {
-            udpStreamer->init("192.168.144.15", 5601, frameBgr.cols, frameBgr.rows, 30);
+            udpStreamer->init("192.168.144.15",
+                              5601,
+                              frameBgr.cols,
+                              frameBgr.rows,
+                              30);
         }
 
         // send FULL annotated frame to UDP
         if (udpStreamer && udpStreamer->isReady()) {
             udpStreamer->sendFrame(frameBgr);
         }
-
-        // display same annotated frame in UI
-        // cv::Mat rgb;
-        // cv::cvtColor(frameBgr, rgb, cv::COLOR_BGR2RGB);
-
-        // QImage img(rgb.data,
-        //            rgb.cols,
-        //            rgb.rows,
-        //            static_cast<int>(rgb.step),
-        //            QImage::Format_RGB888);
-
-        // label->setPixmap(QPixmap::fromImage(img.copy()));
 
         // display same annotated frame in UI
         showFrameOnScreen(frameBgr);
@@ -487,6 +518,14 @@ void MainWindow::setupParserThread()
 
     connect(parserWorker, &CANParserWorker::stopTrackingReceived,
             this, &MainWindow::onStopTrackingReceived,
+            Qt::QueuedConnection);
+
+    connect(parserWorker, &CANParserWorker::cameraFovReceived,
+            this, &MainWindow::onCameraFovReceived,
+            Qt::QueuedConnection);
+
+    connect(parserWorker, &CANParserWorker::trackingParamsReceived,
+            this, &MainWindow::onTrackingParamsReceived,
             Qt::QueuedConnection);
 
     connect(parserThread, &QThread::finished,
