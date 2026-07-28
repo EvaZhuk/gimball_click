@@ -20,6 +20,7 @@
 
 #include "stream/udpstreamer.h"
 #include "video/videoworker.h"
+#include "tracking/trackingdeviationcalculator.h"
 
 class MainWindow : public QMainWindow
 {
@@ -106,6 +107,7 @@ private:
     void resetTracking();
 
     quint64 lastUdpFrameId = 0;
+    TrackingDeviationCalculator deviationCalculator;
 };
 
 #endif // MAINWINDOW_H

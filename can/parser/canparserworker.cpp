@@ -41,14 +41,13 @@ void CANParserWorker::process()
                 break;
             case ParamType::UShort:
             {
-                // TrackingParams trackingParams;
-                // if (canMessage.ParseTrackingParams(trackingParams)) {
-                //     qDebug() << "[CAN RX] tracking params updated:"
-                //              << "roiSize =" << trackingParams.roiSize;
+                TrackingParams trackingParams;
+                if (canMessage.ParseTrackingParams(trackingParams)) {
+                    qDebug() << "[CAN RX] tracking params updated:"
+                             << "roiSize =" << trackingParams.roiSize;
 
-                //     emit trackingParamsReceived(trackingParams.roiSize);
-                //     return;
-                // }
+                    emit trackingParamsReceived(trackingParams.roiSize);
+                }
             }
                 break;
             case ParamType::UShort2:
@@ -79,7 +78,6 @@ void CANParserWorker::process()
                              << "V =" << cameraFov.vDeg;
 
                     emit cameraFovReceived(cameraFov.hDeg, cameraFov.vDeg);
-                    return;
                 }
                 break;
             }

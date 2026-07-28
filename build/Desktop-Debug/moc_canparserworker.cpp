@@ -44,21 +44,21 @@ QT_MOC_LITERAL(8, 80, 1), // "y"
 QT_MOC_LITERAL(9, 82, 30), // "capturePointNormalizedReceived"
 QT_MOC_LITERAL(10, 113, 2), // "nx"
 QT_MOC_LITERAL(11, 116, 2), // "ny"
-QT_MOC_LITERAL(12, 119, 20), // "stopTrackingReceived"
-QT_MOC_LITERAL(13, 140, 17), // "cameraFovReceived"
-QT_MOC_LITERAL(14, 158, 4), // "hDeg"
-QT_MOC_LITERAL(15, 163, 4), // "vDeg"
-QT_MOC_LITERAL(16, 168, 22), // "trackingParamsReceived"
-QT_MOC_LITERAL(17, 191, 7), // "roiSize"
+QT_MOC_LITERAL(12, 119, 17), // "cameraFovReceived"
+QT_MOC_LITERAL(13, 137, 4), // "hDeg"
+QT_MOC_LITERAL(14, 142, 4), // "vDeg"
+QT_MOC_LITERAL(15, 147, 22), // "trackingParamsReceived"
+QT_MOC_LITERAL(16, 170, 7), // "roiSize"
+QT_MOC_LITERAL(17, 178, 20), // "stopTrackingReceived"
 QT_MOC_LITERAL(18, 199, 7) // "process"
 
     },
     "CANParserWorker\0messageParsed\0\0"
     "parseError\0error\0capturePointReceived\0"
     "uint16_t\0x\0y\0capturePointNormalizedReceived\0"
-    "nx\0ny\0stopTrackingReceived\0cameraFovReceived\0"
-    "hDeg\0vDeg\0trackingParamsReceived\0"
-    "roiSize\0process"
+    "nx\0ny\0cameraFovReceived\0hDeg\0vDeg\0"
+    "trackingParamsReceived\0roiSize\0"
+    "stopTrackingReceived\0process"
 };
 #undef QT_MOC_LITERAL
 
@@ -80,9 +80,9 @@ static const uint qt_meta_data_CANParserWorker[] = {
        3,    1,   55,    2, 0x06 /* Public */,
        5,    2,   58,    2, 0x06 /* Public */,
        9,    2,   63,    2, 0x06 /* Public */,
-      12,    0,   68,    2, 0x06 /* Public */,
-      13,    2,   69,    2, 0x06 /* Public */,
-      16,    1,   74,    2, 0x06 /* Public */,
+      12,    2,   68,    2, 0x06 /* Public */,
+      15,    1,   73,    2, 0x06 /* Public */,
+      17,    0,   76,    2, 0x06 /* Public */,
 
  // slots: name, argc, parameters, tag, flags
       18,    0,   77,    2, 0x0a /* Public */,
@@ -92,9 +92,9 @@ static const uint qt_meta_data_CANParserWorker[] = {
     QMetaType::Void, QMetaType::QString,    4,
     QMetaType::Void, 0x80000000 | 6, 0x80000000 | 6,    7,    8,
     QMetaType::Void, QMetaType::Float, QMetaType::Float,   10,   11,
+    QMetaType::Void, QMetaType::Float, QMetaType::Float,   13,   14,
+    QMetaType::Void, 0x80000000 | 6,   16,
     QMetaType::Void,
-    QMetaType::Void, QMetaType::Float, QMetaType::Float,   14,   15,
-    QMetaType::Void, 0x80000000 | 6,   17,
 
  // slots: parameters
     QMetaType::Void,
@@ -112,9 +112,9 @@ void CANParserWorker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int 
         case 1: _t->parseError((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         case 2: _t->capturePointReceived((*reinterpret_cast< uint16_t(*)>(_a[1])),(*reinterpret_cast< uint16_t(*)>(_a[2]))); break;
         case 3: _t->capturePointNormalizedReceived((*reinterpret_cast< float(*)>(_a[1])),(*reinterpret_cast< float(*)>(_a[2]))); break;
-        case 4: _t->stopTrackingReceived(); break;
-        case 5: _t->cameraFovReceived((*reinterpret_cast< float(*)>(_a[1])),(*reinterpret_cast< float(*)>(_a[2]))); break;
-        case 6: _t->trackingParamsReceived((*reinterpret_cast< uint16_t(*)>(_a[1]))); break;
+        case 4: _t->cameraFovReceived((*reinterpret_cast< float(*)>(_a[1])),(*reinterpret_cast< float(*)>(_a[2]))); break;
+        case 5: _t->trackingParamsReceived((*reinterpret_cast< uint16_t(*)>(_a[1]))); break;
+        case 6: _t->stopTrackingReceived(); break;
         case 7: _t->process(); break;
         default: ;
         }
@@ -149,22 +149,22 @@ void CANParserWorker::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int 
             }
         }
         {
-            using _t = void (CANParserWorker::*)();
-            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&CANParserWorker::stopTrackingReceived)) {
-                *result = 4;
-                return;
-            }
-        }
-        {
             using _t = void (CANParserWorker::*)(float , float );
             if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&CANParserWorker::cameraFovReceived)) {
-                *result = 5;
+                *result = 4;
                 return;
             }
         }
         {
             using _t = void (CANParserWorker::*)(uint16_t );
             if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&CANParserWorker::trackingParamsReceived)) {
+                *result = 5;
+                return;
+            }
+        }
+        {
+            using _t = void (CANParserWorker::*)();
+            if (*reinterpret_cast<_t *>(_a[1]) == static_cast<_t>(&CANParserWorker::stopTrackingReceived)) {
                 *result = 6;
                 return;
             }
@@ -240,23 +240,23 @@ void CANParserWorker::capturePointNormalizedReceived(float _t1, float _t2)
 }
 
 // SIGNAL 4
-void CANParserWorker::stopTrackingReceived()
-{
-    QMetaObject::activate(this, &staticMetaObject, 4, nullptr);
-}
-
-// SIGNAL 5
 void CANParserWorker::cameraFovReceived(float _t1, float _t2)
 {
     void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))), const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t2))) };
+    QMetaObject::activate(this, &staticMetaObject, 4, _a);
+}
+
+// SIGNAL 5
+void CANParserWorker::trackingParamsReceived(uint16_t _t1)
+{
+    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))) };
     QMetaObject::activate(this, &staticMetaObject, 5, _a);
 }
 
 // SIGNAL 6
-void CANParserWorker::trackingParamsReceived(uint16_t _t1)
+void CANParserWorker::stopTrackingReceived()
 {
-    void *_a[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(std::addressof(_t1))) };
-    QMetaObject::activate(this, &staticMetaObject, 6, _a);
+    QMetaObject::activate(this, &staticMetaObject, 6, nullptr);
 }
 QT_WARNING_POP
 QT_END_MOC_NAMESPACE

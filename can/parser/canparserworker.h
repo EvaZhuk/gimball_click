@@ -23,9 +23,9 @@ signals:
     void parseError(const QString &error);
     void capturePointReceived(uint16_t x, uint16_t y);
     void capturePointNormalizedReceived(float nx, float ny);
-    void stopTrackingReceived();
     void cameraFovReceived(float hDeg, float vDeg);
     void trackingParamsReceived(uint16_t roiSize);
+    void stopTrackingReceived();
 
 public slots:
     void process();

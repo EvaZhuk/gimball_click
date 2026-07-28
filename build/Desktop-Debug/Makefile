@@ -63,6 +63,7 @@ SOURCES       = ../../can/transport/CannelloniFrame.cpp \
 		../../gui/mainwindow.cpp \
 		../../mavlink/mavlinkinterface.cpp \
 		../../stream/udpstreamer.cpp \
+		../../tracking/trackingdeviationcalculator.cpp \
 		../../video/videoworker.cpp moc_canbus.cpp \
 		moc_canparserworker.cpp \
 		moc_clickablelabel.cpp \
@@ -81,6 +82,7 @@ OBJECTS       = CannelloniFrame.o \
 		mainwindow.o \
 		mavlinkinterface.o \
 		udpstreamer.o \
+		trackingdeviationcalculator.o \
 		videoworker.o \
 		moc_canbus.o \
 		moc_canparserworker.o \
@@ -184,6 +186,7 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../../gui/mainwindow.h \
 		../../mavlink/mavlinkinterface.h \
 		../../stream/udpstreamer.h \
+		../../tracking/trackingdeviationcalculator.h \
 		../../video/videoworker.h ../../can/transport/CannelloniFrame.cpp \
 		../../can/message/basecanmessage.cpp \
 		../../can/canbus.cpp \
@@ -195,6 +198,7 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		../../gui/mainwindow.cpp \
 		../../mavlink/mavlinkinterface.cpp \
 		../../stream/udpstreamer.cpp \
+		../../tracking/trackingdeviationcalculator.cpp \
 		../../video/videoworker.cpp
 QMAKE_TARGET  = gimball_click
 DESTDIR       = 
@@ -393,8 +397,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.h ../../can/transport/SendDataFrame.h can/util/CircularBuffer.h ../../can/message/basecanmessage.h ../../can/canbus.h ../../can/message/canmessagegeneric.h ../../can/parser/canparserworker.h ../../gui/clickablelabel.h ../../gui/mainwindow.h ../../mavlink/mavlinkinterface.h ../../stream/udpstreamer.h ../../video/videoworker.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.cpp ../../can/message/basecanmessage.cpp ../../can/canbus.cpp ../../can/message/canmessagegeneric.cpp ../../can/parser/canparserworker.cpp ../../can/transport/SendDataFrame.cpp ../../gui/clickablelabel.cpp ../../main.cpp ../../gui/mainwindow.cpp ../../mavlink/mavlinkinterface.cpp ../../stream/udpstreamer.cpp ../../video/videoworker.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.h ../../can/transport/SendDataFrame.h can/util/CircularBuffer.h ../../can/message/basecanmessage.h ../../can/canbus.h ../../can/message/canmessagegeneric.h ../../can/parser/canparserworker.h ../../gui/clickablelabel.h ../../gui/mainwindow.h ../../mavlink/mavlinkinterface.h ../../stream/udpstreamer.h ../../tracking/trackingdeviationcalculator.h ../../video/videoworker.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../../can/transport/CannelloniFrame.cpp ../../can/message/basecanmessage.cpp ../../can/canbus.cpp ../../can/message/canmessagegeneric.cpp ../../can/parser/canparserworker.cpp ../../can/transport/SendDataFrame.cpp ../../gui/clickablelabel.cpp ../../main.cpp ../../gui/mainwindow.cpp ../../mavlink/mavlinkinterface.cpp ../../stream/udpstreamer.cpp ../../tracking/trackingdeviationcalculator.cpp ../../video/videoworker.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../../mainwindow.ui $(DISTDIR)/
 
 
@@ -446,12 +450,15 @@ moc_clickablelabel.cpp: ../../gui/clickablelabel.h \
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../gui/clickablelabel.h -o moc_clickablelabel.cpp
 
 moc_mainwindow.cpp: ../../gui/mainwindow.h \
+		../../can/message/canmessagegeneric.h \
+		../../can/message/basecanmessage.h \
 		../../can/parser/canparserworker.h \
 		../../can/utils/CircularBuffer.h \
 		../../can/canbus.h \
 		../../gui/clickablelabel.h \
 		../../stream/udpstreamer.h \
 		../../video/videoworker.h \
+		../../tracking/trackingdeviationcalculator.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/lps/gimball_click-main/build/Desktop-Debug/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-clang -I/home/lps/gimball_click-main -I/home/lps/gimball_click-main/c_library_v2 -I/usr/local/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtNetwork -I/usr/include/aarch64-linux-gnu/qt5/QtSerialPort -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I. -I/usr/include/c++/13 -I/usr/include/aarch64-linux-gnu/c++/13 -I/usr/include/c++/13/backward -I/usr/lib/llvm-18/lib/clang/18/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include ../../gui/mainwindow.h -o moc_mainwindow.cpp
@@ -761,12 +768,15 @@ clickablelabel.o: ../../gui/clickablelabel.cpp ../../gui/clickablelabel.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o clickablelabel.o ../../gui/clickablelabel.cpp
 
 main.o: ../../main.cpp ../../gui/mainwindow.h \
+		../../can/message/canmessagegeneric.h \
+		../../can/message/basecanmessage.h \
 		../../can/parser/canparserworker.h \
 		../../can/utils/CircularBuffer.h \
 		../../can/canbus.h \
 		../../gui/clickablelabel.h \
 		../../stream/udpstreamer.h \
 		../../video/videoworker.h \
+		../../tracking/trackingdeviationcalculator.h \
 		../../mavlink/mavlinkinterface.h \
 		/home/lps/c_library_v2/common/mavlink.h \
 		../../../c_library_v2/common/version.h \
@@ -1015,12 +1025,15 @@ main.o: ../../main.cpp ../../gui/mainwindow.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../../main.cpp
 
 mainwindow.o: ../../gui/mainwindow.cpp ../../gui/mainwindow.h \
+		../../can/message/canmessagegeneric.h \
+		../../can/message/basecanmessage.h \
 		../../can/parser/canparserworker.h \
 		../../can/utils/CircularBuffer.h \
 		../../can/canbus.h \
 		../../gui/clickablelabel.h \
 		../../stream/udpstreamer.h \
 		../../video/videoworker.h \
+		../../tracking/trackingdeviationcalculator.h \
 		../../can/transport/CannelloniFrame.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o ../../gui/mainwindow.cpp
 
@@ -1273,6 +1286,11 @@ mavlinkinterface.o: ../../mavlink/mavlinkinterface.cpp ../../mavlink/mavlinkinte
 
 udpstreamer.o: ../../stream/udpstreamer.cpp ../../stream/udpstreamer.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o udpstreamer.o ../../stream/udpstreamer.cpp
+
+trackingdeviationcalculator.o: ../../tracking/trackingdeviationcalculator.cpp ../../tracking/trackingdeviationcalculator.h \
+		../../can/message/canmessagegeneric.h \
+		../../can/message/basecanmessage.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o trackingdeviationcalculator.o ../../tracking/trackingdeviationcalculator.cpp
 
 videoworker.o: ../../video/videoworker.cpp ../../video/videoworker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o videoworker.o ../../video/videoworker.cpp

@@ -281,14 +281,17 @@ void MainWindow::updateTrackerAndOverlay(cv::Mat &frame)
     if (trackingActive && tracker) {
         ok = tracker->update(frame, trackingROI);
 
-        if (!ok) {
-            // можна або вимкнути trackingActive, або лишити статус "TRACK LOST"
-            // тут лишаю активним, щоб було видно статус втрати
+        if (ok) {
+            deviationCalculator.processAndSend(frame, trackingROI, cameraFov);
+        } else {
+            qDebug() << "[TRACKING] lost";
+            deviationCalculator.sendStop();
         }
     }
 
     drawTrackingOverlay(frame, ok);
 }
+
 
 void MainWindow::initVideoThread()
 {
@@ -528,6 +531,7 @@ void MainWindow::setupParserThread()
             this, &MainWindow::onTrackingParamsReceived,
             Qt::QueuedConnection);
 
+
     connect(parserThread, &QThread::finished,
             parserWorker, &QObject::deleteLater);
 
@@ -566,6 +570,8 @@ void MainWindow::onStopTrackingReceived()
 // Скидання трекінга по команді по КАН
 void MainWindow::resetTracking()
 {
+    deviationCalculator.sendStop();
+
     tracker.release();
     trackingActive = false;
     trackingROI = cv::Rect();
@@ -577,7 +583,6 @@ void MainWindow::resetTracking()
 
     qDebug() << "[TRACKING] reset";
 }
-
 // Почати трекінг по нормалізованим координатам
 void MainWindow::startTrackingNormalized(float nx, float ny)
 {

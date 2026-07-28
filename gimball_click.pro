@@ -23,6 +23,7 @@ SOURCES += \
     gui/mainwindow.cpp \
     mavlink/mavlinkinterface.cpp \
     stream/udpstreamer.cpp \
+    tracking/trackingdeviationcalculator.cpp \
     video/videoworker.cpp
 
 HEADERS += \
@@ -37,6 +38,7 @@ HEADERS += \
     gui/mainwindow.h \
     mavlink/mavlinkinterface.h \
     stream/udpstreamer.h \
+    tracking/trackingdeviationcalculator.h \
     video/videoworker.h
 
 FORMS += \
