@@ -108,6 +108,7 @@ private:
 
     quint64 lastUdpFrameId = 0;
     TrackingDeviationCalculator deviationCalculator;
+    void resizeActiveTrackingRoi(uint16_t roiSize);
 };
 
 #endif // MAINWINDOW_H

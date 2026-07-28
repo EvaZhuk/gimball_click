@@ -161,16 +161,9 @@ void MainWindow::onCameraFovReceived(float hDeg, float vDeg)
 //Отримання roiSize
 void MainWindow::onTrackingParamsReceived(uint16_t roiSize)
 {
-    if (roiSize < 10 || roiSize > 1000) {
-        qDebug() << "[TRACKING PARAMS] invalid roiSize =" << roiSize;
-        return;
-    }
-
-    trackingParams.roiSize = roiSize;
-
-    qDebug() << "[TRACKING PARAMS] roiSize updated ="
-             << trackingParams.roiSize;
+    resizeActiveTrackingRoi(roiSize);
 }
+
 
 // Спільна функція запуску трекінгу
 void MainWindow::startTrackingAtPoint(int xCenter, int yCenter)
@@ -613,4 +606,64 @@ void MainWindow::startTrackingNormalized(float nx, float ny)
              << "frame =" << frameW << "x" << frameH;
 
     startTrackingAtPoint(x, y);
+}
+
+
+//Змінити розмір ROI
+void MainWindow::resizeActiveTrackingRoi(uint16_t roiSize)
+{
+    if (roiSize < 10 || roiSize > 1000) {
+        qDebug() << "[TRACKING PARAMS] invalid roiSize =" << roiSize;
+        return;
+    }
+
+    trackingParams.roiSize = roiSize;
+
+    if (!trackingActive || trackingROI.empty()) {
+        qDebug() << "[TRACKING PARAMS] roiSize updated for next start =" << roiSize;
+        return;
+    }
+
+    if (lastFrame.empty()) {
+        qDebug() << "[TRACKING PARAMS] no frame for tracker reinit, only roiSize updated =" << roiSize;
+        return;
+    }
+
+    const float centerX = trackingROI.x + trackingROI.width * 0.5f;
+    const float centerY = trackingROI.y + trackingROI.height * 0.5f;
+
+    const int newSize = static_cast<int>(roiSize);
+
+    int x = static_cast<int>(std::round(centerX - newSize * 0.5f));
+    int y = static_cast<int>(std::round(centerY - newSize * 0.5f));
+
+    x = std::clamp(x, 0, std::max(0, lastFrame.cols - newSize));
+    y = std::clamp(y, 0, std::max(0, lastFrame.rows - newSize));
+
+    cv::Rect newRoi(x, y, newSize, newSize);
+
+    // Якщо новий ROI не влазить у кадр
+    if (newRoi.width <= 0 || newRoi.height <= 0 ||
+        newRoi.x < 0 || newRoi.y < 0 ||
+        newRoi.x + newRoi.width > lastFrame.cols ||
+        newRoi.y + newRoi.height > lastFrame.rows) {
+
+        qDebug() << "[TRACKING PARAMS] invalid resized ROI:"
+                 << newRoi.x << newRoi.y << newRoi.width << newRoi.height
+                 << "frame =" << lastFrame.cols << lastFrame.rows;
+        return;
+    }
+
+    trackingROI = newRoi;
+
+    // Важливо: CSRT краще переініціалізувати з новим ROI
+    tracker = cv::TrackerCSRT::create();
+    tracker->init(lastFrame, trackingROI);
+
+    qDebug() << "[TRACKING PARAMS] active ROI resized:"
+             << "roiSize =" << roiSize
+             << "roi =" << trackingROI.x
+             << trackingROI.y
+             << trackingROI.width
+             << trackingROI.height;
 }
